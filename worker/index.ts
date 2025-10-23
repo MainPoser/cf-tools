@@ -4,7 +4,7 @@ export default {
 
     if (url.pathname.startsWith("/api/")) {
       return Response.json({
-        name: "Cloudflare",
+        name: "大业有成",
       });
     }
 		return new Response(null, { status: 404 });
