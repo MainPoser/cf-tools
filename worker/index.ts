@@ -1,5 +1,5 @@
 export default {
-  fetch(request) {
+  fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith("/api/")) {
@@ -7,6 +7,6 @@ export default {
         name: "大业有成",
       });
     }
-		return new Response(null, { status: 404 });
+    return new Response(null, { status: 404 });
   },
 } satisfies ExportedHandler<Env>;

@@ -1,56 +1,39 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import cloudflareLogo from './assets/Cloudflare_Logo.svg'
-import './App.css'
+// 导入路由组件和 Link
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+
+
+// 导入你的页面
+import Home from './pages/home/Home';
+import About from './pages/about/About';
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [name, setName] = useState('unknown')
+
 
   return (
     <>
-      <div>
-        <a href='https://vite.dev' target='_blank'>
-          <img src={viteLogo} className='logo' alt='Vite logo' />
-        </a>
-        <a href='https://react.dev' target='_blank'>
-          <img src={reactLogo} className='logo react' alt='React logo' />
-        </a>
-        <a href='https://workers.cloudflare.com/' target='_blank'>
-          <img src={cloudflareLogo} className='logo cloudflare' alt='Cloudflare logo' />
-        </a>
-      </div>
-      <h1>Vite + React + Cloudflare</h1>
-      <div className='card'>
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          aria-label='increment'
-        >
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <div className='card'>
-        <button
-          onClick={() => {
-            fetch('/api/')
-              .then((res) => res.json() as Promise<{ name: string }>)
-              .then((data) => setName(data.name))
-          }}
-          aria-label='get name'
-        >
-          Name from API is: {name}
-        </button>
-        <p>
-          Edit <code>worker/index.ts</code> to change the name
-        </p>
-      </div>
-      <p className='read-the-docs'>
-        Click on the Vite and React logos to learn more
-      </p>
+      <BrowserRouter>
+        {/* 导航栏 */}
+        <nav style={{ borderBottom: '1px solid #ccc', padding: '10px' }}>
+          {/* 使用 Link 实现客户端跳转，避免页面刷新 */}
+          <Link to="/" style={{ marginRight: '15px' }}>Home</Link>
+          <Link to="/about">About</Link>
+        </nav>
+
+        {/* 路由展示区 */}
+        <div style={{ padding: '20px' }}>
+          {/* Routes 负责匹配当前 URL 对应的 Route */}
+          <Routes>
+            {/* 首页路由 */}
+            <Route path="/" element={<Home />} />
+
+            {/* About 页面路由 */}
+            <Route path="/about" element={<About />} />
+
+            {/* 可选: 404 页面 */}
+            <Route path="*" element={<h2>404 Not Found</h2>} />
+          </Routes>
+        </div>
+      </BrowserRouter>
     </>
   )
 }
