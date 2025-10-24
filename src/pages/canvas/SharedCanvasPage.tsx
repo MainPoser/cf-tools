@@ -31,7 +31,7 @@ const SharedCanvasPage: React.FC = () => {
         // WebSocket 地址，根据环境切换
         let WS_BASE = import.meta.env.MODE === "development"
             ? "ws://localhost:8787"
-            : "wss://your-worker-domain.workers.dev"; // 替换为生产域名
+            : ""; // 替换为生产域名
 
         // 连接 WebSocket
         const ws = new WebSocket(`${WS_BASE}/api/canvas/${roomId}`);
