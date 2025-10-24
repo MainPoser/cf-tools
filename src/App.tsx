@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 // 导入你的页面
 import Home from './pages/home/Home';
 import About from './pages/about/About';
+import SharedCanvasPage from "./pages/canvas/SharedCanvasPage";
 
 function App() {
 
@@ -16,7 +17,8 @@ function App() {
         <nav style={{ borderBottom: '1px solid #ccc', padding: '10px' }}>
           {/* 使用 Link 实现客户端跳转，避免页面刷新 */}
           <Link to="/" style={{ marginRight: '15px' }}>Home</Link>
-          <Link to="/about">About</Link>
+          <Link to="/about" style={{ marginRight: '15px' }}>About</Link>
+          <Link to="/canvas/default" style={{ marginRight: '15px' }}>进入共享画布</Link>
         </nav>
 
         {/* 路由展示区 */}
@@ -28,6 +30,9 @@ function App() {
 
             {/* About 页面路由 */}
             <Route path="/about" element={<About />} />
+
+            {/* Canvas 页面路由 */}
+            <Route path="/canvas/:roomId" element={<SharedCanvasPage />} />
 
             {/* 可选: 404 页面 */}
             <Route path="*" element={<h2>404 Not Found</h2>} />
