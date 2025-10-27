@@ -1,6 +1,7 @@
 // 导入路由组件和 Link
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
+import "./App.css"
 
 // 导入你的页面
 import Home from './pages/home/Home';
