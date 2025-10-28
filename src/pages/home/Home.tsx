@@ -2,15 +2,18 @@ import { useState } from 'react'
 import reactLogo from '../../assets/react.svg'
 import viteLogo from '/vite.svg'
 import cloudflareLogo from '../../assets/Cloudflare_Logo.svg'
+import { theme } from 'antd';
 import './Home.css'
 
 function Home() {
     const [count, setCount] = useState(0)
     const [name, setName] = useState('unknown')
 
+    const { token: { colorBgContainer } } = theme.useToken();
+
+
     return (
-        <>
-            <h2>Home Page - 欢迎！</h2>
+        <div style={{ padding: 0, background: colorBgContainer }}>
             <div>
                 <a href='https://vite.dev' target='_blank'>
                     <img src={viteLogo} className='logo' alt='Vite logo' />
@@ -52,7 +55,7 @@ function Home() {
             <p className='read-the-docs'>
                 Click on the Vite and React logos to learn more
             </p>
-        </>
+        </div>
     )
 };
 
