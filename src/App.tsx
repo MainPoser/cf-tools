@@ -6,7 +6,7 @@ import MainLayout from './components/MainLayout'; // 导入我们创建的布局
 // 导入你的页面
 import Home from './pages/home/Home';
 import About from './pages/about/About';
-import SharedCanvasPage from "./pages/canvas/SharedCanvasPage";
+import Canvas from "./pages/canvas/Canvas";
 
 function App() {
   return (
@@ -22,7 +22,7 @@ function App() {
           <Route path="/about" element={<About />} />
 
           {/* Canvas 页面路由 */}
-          <Route path="/canvas/:roomId" element={<SharedCanvasPage />} />
+          <Route path="/canvas/:roomId" element={<Canvas />} />
 
           {/* 可选: 404 页面 */}
           <Route path="*" element={<h2>404 Not Found</h2>} />

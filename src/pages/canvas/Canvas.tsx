@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import * as fabric from "fabric";
-import './SharedCanvasPage.css';
+import './Canvas.css';
 
 // 画布工具配置接口
 interface DrawingConfig {
@@ -9,7 +9,7 @@ interface DrawingConfig {
     width: number;
 }
 
-function SharedCanvasPage() {
+function Canvas() {
     // url参数
     const { roomId } = useParams();
 
@@ -38,10 +38,8 @@ function SharedCanvasPage() {
             const ratio = window.devicePixelRatio || 1;
 
             // 设置 canvas 元素的实际分辨率
-            canvas.setDimensions({
-                width: clientWidth,
-                height: clientHeight
-            })
+            canvas.setWidth(clientWidth);
+            canvas.setHeight(clientHeight);
 
             // 同步内部像素分辨率，避免模糊或错位
             const ctx = canvas.getContext();
@@ -182,4 +180,4 @@ function SharedCanvasPage() {
     );
 };
 
-export default SharedCanvasPage;
+export default Canvas;
