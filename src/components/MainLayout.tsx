@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Layout, Menu, theme } from 'antd';
 import { UserOutlined, CoffeeOutlined, PictureOutlined } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
+import './MainLayout.css';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -28,44 +29,31 @@ export default function MainLayout({ children }: MainLayoutProps) {
     } = theme.useToken();
 
     return (
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout className="main-layout" style={{ minHeight: '100vh' }}>
             {/* 侧边栏 */}
             <Sider
+                className="sidebar"
                 collapsible
                 collapsed={collapsed}
                 onCollapse={(value) => setCollapsed(value)}
             >
                 {/* 新的 Logo 容器 */}
-                <div
-                    style={{
-                        height: 32,
-                        margin: 16,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: collapsed ? 'center' : 'flex-start', // 折叠时居中
-                        overflow: 'hidden', // 防止图片溢出
-                    }}
-                >
+                <div className={`logo-container ${collapsed ? 'collapsed' : ''}`}>
                     <img
                         src="/vite.svg"
                         alt="App Logo"
-                        // Logo 图片的基本样式
-                        style={{
-                            height: 32, // 图片高度
-                            width: 32,  // 图片宽度
-                            marginRight: collapsed ? 0 : 8, // 折叠时去掉右侧边距
-                            objectFit: 'contain', // 确保图片不变形
-                        }}
+                        className="logo-img"
                     />
 
                     {/* 只有在侧边栏展开时才显示文字 */}
                     {!collapsed && (
-                        <span style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>
+                        <span className="logo-text">
                             CF-TOOLS
                         </span>
                     )}
                 </div>
                 <Menu
+                    className="sidebar-menu"
                     theme="dark"
                     defaultSelectedKeys={[selectedKey]}
                     selectedKeys={[selectedKey]} // 确保菜单与路由同步
@@ -74,20 +62,22 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 />
             </Sider>
 
-            <Layout>
+            <Layout className="main-content-layout">
                 {/* 顶部导航 */}
-                <Header style={{ padding: 0, background: colorBgContainer }}>
-                    <div style={{ padding: '0 24px', fontSize: '18px' }}>
+                <Header 
+                    className="main-header"
+                    style={{ background: colorBgContainer }}
+                >
+                    <div className="header-content">
                         Cloudflare React 应用
                     </div>
                 </Header>
 
                 {/* 主内容区域 */}
-                <Content style={{ margin: '24px 16px' }}>
+                <Content className="main-content">
                     <div
+                        className="content-container"
                         style={{
-                            padding: 24,
-                            minHeight: '80vh', // 设置最小高度以保证内容填充
                             background: colorBgContainer,
                             borderRadius: borderRadiusLG,
                         }}
@@ -98,7 +88,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 </Content>
 
                 {/* 页脚 */}
-                <Footer style={{ textAlign: 'center' }}>
+                <Footer className="main-footer">
                     Cloudflare App Created with Ant Design ©{new Date().getFullYear()}
                 </Footer>
             </Layout>

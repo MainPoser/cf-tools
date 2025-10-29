@@ -1,0 +1,15 @@
+.about-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 2rem;
+}
+
+.about-title {
+  text-align: center;
+  margin: 0;
+  font-size: 2rem;
+  color: #1890ff;
+}

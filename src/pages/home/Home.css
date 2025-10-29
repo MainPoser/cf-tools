@@ -1,38 +1,125 @@
+/* 主容器样式 */
+.home-container {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100%;
+  gap: 2rem;
+}
+
+/* Logo区域样式 */
+.logo-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* 标题样式 */
+.home-title {
+  margin: 0;
+  text-align: center;
+}
+
+/* 功能卡片区域样式 */
+.cards-section {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 800px;
+}
+
+/* 功能卡片样式 */
+.feature-card {
+  flex: 1;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2em;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* 底部提示文字样式 */
+.read-the-docs {
+  color: #888;
+  font-size: 0.9em;
+  margin-top: auto;
+  text-align: center;
+}
+
+/* Logo样式 */
 .logo {
-	height: 6em;
-	padding: 1.5em;
-	will-change: filter;
-	transition: filter 300ms;
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+  flex-shrink: 0; /* 防止logo在flex布局中收缩 */
 }
+
 .logo:hover {
-	filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
-	filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em #61dafbaa);
 }
+
 .logo.cloudflare:hover {
-	filter: drop-shadow(0 0 2em #f6821faa);
+  filter: drop-shadow(0 0 2em #f6821faa);
 }
 
 @keyframes logo-spin {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(360deg);
-	}
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-	a:nth-of-type(2) .logo {
-		animation: logo-spin infinite 20s linear;
-	}
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
 }
 
-.card {
-	padding: 2em;
+/* 按钮样式优化 */
+button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
 }
 
-.read-the-docs {
-	color: #888;
+button:hover {
+  border-color: #4096ff;
+  color: #4096ff;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* 段落样式 */
+.feature-card p {
+  margin: 0;
+  text-align: center;
 }

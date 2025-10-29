@@ -11,10 +11,9 @@ function Home() {
 
     const { token: { colorBgContainer } } = theme.useToken();
 
-
     return (
-        <div style={{ padding: 0, background: colorBgContainer }}>
-            <div>
+        <div className="home-container" style={{ background: colorBgContainer }}>
+            <div className="logo-section">
                 <a href='https://vite.dev' target='_blank'>
                     <img src={viteLogo} className='logo' alt='Vite logo' />
                 </a>
@@ -25,33 +24,39 @@ function Home() {
                     <img src={cloudflareLogo} className='logo cloudflare' alt='Cloudflare logo' />
                 </a>
             </div>
-            <h1>Vite + React + Cloudflare</h1>
-            <div className='card'>
-                <button
-                    onClick={() => setCount((count) => count + 1)}
-                    aria-label='increment'
-                >
-                    count is {count}
-                </button>
-                <p>
-                    Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
+            
+            <h1 className="home-title">Vite + React + Cloudflare</h1>
+            
+            <div className="cards-section">
+                <div className="feature-card">
+                    <button
+                        onClick={() => setCount((count) => count + 1)}
+                        aria-label='increment'
+                    >
+                        count is {count}
+                    </button>
+                    <p>
+                        Edit <code>src/App.tsx</code> and save to test HMR
+                    </p>
+                </div>
+                
+                <div className="feature-card">
+                    <button
+                        onClick={() => {
+                            fetch('/api/')
+                                .then((res) => res.json() as Promise<{ name: string }>)
+                                .then((data) => setName(data.name))
+                        }}
+                        aria-label='get name'
+                    >
+                        Name from API is: {name}
+                    </button>
+                    <p>
+                        Edit <code>worker/index.ts</code> to change the name
+                    </p>
+                </div>
             </div>
-            <div className='card'>
-                <button
-                    onClick={() => {
-                        fetch('/api/')
-                            .then((res) => res.json() as Promise<{ name: string }>)
-                            .then((data) => setName(data.name))
-                    }}
-                    aria-label='get name'
-                >
-                    Name from API is: {name}
-                </button>
-                <p>
-                    Edit <code>worker/index.ts</code> to change the name
-                </p>
-            </div>
+            
             <p className='read-the-docs'>
                 Click on the Vite and React logos to learn more
             </p>
