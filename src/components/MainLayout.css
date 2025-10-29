@@ -1,29 +1,29 @@
 /* 主布局容器 */
 .main-layout {
-  min-height: '100vh';
-  display: 'flex';
-  flex-direction: 'row';
+  min-height: 100vh;
+  display: flex;
+  flex-direction: row;
 }
 
 /* 侧边栏样式 */
 .sidebar {
-  display: 'flex';
-  flex-direction: 'column';
+  display: flex;
+  flex-direction: column;
 }
 
 /* Logo容器样式 */
 .logo-container {
   height: 32px;
   margin: 16px;
-  display: 'flex';
-  align-items: 'center';
-  justify-content: 'flex-start';
-  overflow: 'hidden';
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
 .logo-container.collapsed {
-  justify-content: 'center';
+  justify-content: center;
 }
 
 /* Logo图片样式 */
@@ -31,7 +31,7 @@
   height: 32px;
   width: 32px;
   margin-right: 8px;
-  object-fit: 'contain';
+  object-fit: contain;
   flex-shrink: 0;
 }
 
@@ -41,10 +41,10 @@
 
 /* Logo文字样式 */
 .logo-text {
-  color: 'white';
-  font-weight: 'bold';
-  font-size: '16px';
-  white-space: 'nowrap';
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  white-space: nowrap;
 }
 
 /* 菜单样式 */
@@ -55,47 +55,47 @@
 
 /* 右侧布局容器 */
 .main-content-layout {
-  display: 'flex';
-  flex-direction: 'column';
+  display: flex;
+  flex-direction: column;
   flex: 1;
 }
 
 /* 顶部导航栏样式 */
 .main-header {
   padding: 0;
-  display: 'flex';
-  align-items: 'center';
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
 }
 
 /* 顶部导航文字容器 */
 .header-content {
-  padding: '0 24px';
-  font-size: '18px';
-  display: 'flex';
-  align-items: 'center';
-  height: '100%';
+  padding: 0 24px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 /* 内容区域样式 */
 .main-content {
-  margin: '24px 16px';
+  margin: 24px 16px;
   flex: 1;
-  display: 'flex';
-  flex-direction: 'column';
+  display: flex;
+  flex-direction: column;
 }
 
 /* 内容容器样式 */
 .content-container {
   padding: 24px;
   flex: 1;
-  display: 'flex';
-  flex-direction: 'column';
-  overflow: 'auto';
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
 }
 
 /* 页脚样式 */
 .main-footer {
-  text-align: 'center';
+  text-align: center;
   flex-shrink: 0;
 }
