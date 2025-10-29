@@ -3,19 +3,32 @@ import { useParams } from "react-router-dom";
 import * as fabric from "fabric";
 import './SharedCanvasPage.css';
 
+// 画布工具配置接口
+interface DrawingConfig {
+    color: string;
+    width: number;
+}
+
 function SharedCanvasPage() {
+    // url参数
     const { roomId } = useParams();
+
+    // ref管理
     const canvasEl = useRef<HTMLCanvasElement | null>(null);
     const canvasContainerRef = useRef<HTMLDivElement>(null);
-    const canvasRef = useRef<fabric.Canvas | null>(null);
+    const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
     const wsRef = useRef<WebSocket | null>(null);
     const lastJson = useRef<any>(null); // 缓存上一次 JSON
-    const [color, setColor] = useState("#000000");
-    const [width, setWidth] = useState(3);
+
+    // canvas配置
+    const [drawingBrushConfig, setDrawingConfig] = useState<DrawingConfig>({
+        color: "#000000",
+        width: 3
+    });
 
     // 动态尺寸设置逻辑 (保持不变，但现在它会基于 Flex 自动计算出的 clientWidth/clientHeight)
     useEffect(() => {
-        const canvas = canvasRef.current;
+        const canvas = fabricCanvasRef.current;
         const container = canvasContainerRef.current;
 
         if (!canvas || !container) return;
@@ -25,8 +38,10 @@ function SharedCanvasPage() {
             const ratio = window.devicePixelRatio || 1;
 
             // 设置 canvas 元素的实际分辨率
-            canvas.setWidth(clientWidth);
-            canvas.setHeight(clientHeight);
+            canvas.setDimensions({
+                width: clientWidth,
+                height: clientHeight
+            })
 
             // 同步内部像素分辨率，避免模糊或错位
             const ctx = canvas.getContext();
@@ -53,39 +68,36 @@ function SharedCanvasPage() {
         if (!canvasEl.current || !roomId) return;
 
         // 初始化 Fabric Canvas
-        const canvas = new fabric.Canvas(canvasEl.current, {
+        const febricCanvas = new fabric.Canvas(canvasEl.current, {
             backgroundColor: "#ffffff",
             selection: false,
         });
-        canvasRef.current = canvas;
+        febricCanvas.isDrawingMode = true;
+        febricCanvas.freeDrawingBrush = new fabric.PencilBrush(febricCanvas);
+        febricCanvas.freeDrawingBrush.color = drawingBrushConfig.color;
+        febricCanvas.freeDrawingBrush.width = drawingBrushConfig.width;
+        febricCanvas.requestRenderAll();
 
-        // 初始化画笔
-        canvas.isDrawingMode = true;
-        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-        canvas.freeDrawingBrush.color = color;
-        canvas.freeDrawingBrush.width = width;
-        canvas.requestRenderAll();
-
-        // WebSocket 地址，根据环境切换
-        let WS_BASE = import.meta.env.MODE === "development"
-            ? "ws://localhost:8787"
-            : ""; // 替换为生产域名
-
-        // 连接 WebSocket
-        const ws = new WebSocket(`${WS_BASE}/api/canvas/${roomId}`);
-        wsRef.current = ws;
+        fabricCanvasRef.current = febricCanvas;
 
         // 远程更新处理
         const handleRemoteUpdate = (jsonData: any) => {
             // 避免重复渲染
             if (JSON.stringify(jsonData) !== JSON.stringify(lastJson.current)) {
                 lastJson.current = jsonData;
-                canvas.loadFromJSON(jsonData, () => {
-                    canvas.calcOffset();
-                    canvas.requestRenderAll();
+                febricCanvas.loadFromJSON(jsonData, () => {
+                    febricCanvas.calcOffset();
+                    febricCanvas.requestRenderAll();
                 });
             }
         };
+
+        // 连接 WebSocket
+        let WS_BASE = import.meta.env.MODE === "development"
+            ? "ws://localhost:8787"
+            : ""; // 替换为生产域名
+        const ws = new WebSocket(`${WS_BASE}/api/canvas/${roomId}`);
+        wsRef.current = ws;
 
         ws.onmessage = (evt) => {
             try {
@@ -97,35 +109,35 @@ function SharedCanvasPage() {
         };
 
         // 本地绘制 -> 发送 WebSocket
-        canvas.on("path:created", () => {
-            const json = canvas.toJSON();
+        febricCanvas.on("path:created", () => {
+            const json = febricCanvas.toJSON();
             lastJson.current = json;
             ws.send(JSON.stringify({ type: "update", payload: json }));
         });
 
         return () => {
             ws.close();
-            canvas.dispose();
+            febricCanvas.dispose();
         };
     }, [roomId]);
 
     // 动态更新画笔
     useEffect(() => {
-        if (canvasRef.current?.freeDrawingBrush) {
-            canvasRef.current.freeDrawingBrush.color = color;
-            canvasRef.current.freeDrawingBrush.width = width;
+        if (fabricCanvasRef.current?.freeDrawingBrush) {
+            fabricCanvasRef.current.freeDrawingBrush.color = drawingBrushConfig.color;
+            fabricCanvasRef.current.freeDrawingBrush.width = drawingBrushConfig.width;
         }
-    }, [color, width]);
+    }, [drawingBrushConfig.color, drawingBrushConfig.width]);
 
     // 清空画布
     const clearCanvas = () => {
-        if (!canvasRef.current) return;
+        if (!fabricCanvasRef.current) return;
 
-        canvasRef.current.clear();
-        canvasRef.current.backgroundColor = "#ffffff";
-        canvasRef.current.requestRenderAll();
+        fabricCanvasRef.current.clear();
+        fabricCanvasRef.current.backgroundColor = "#ffffff";
+        fabricCanvasRef.current.requestRenderAll();
 
-        const json = canvasRef.current.toJSON();
+        const json = fabricCanvasRef.current.toJSON();
         lastJson.current = json;
         wsRef.current?.send(JSON.stringify({ type: "update", payload: json }));
     };
@@ -136,7 +148,7 @@ function SharedCanvasPage() {
                 <h2 className="canvas-title">共享画布房间：{roomId}</h2>
                 <label>
                     颜色：
-                    <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+                    <input type="color" value={drawingBrushConfig.color} onChange={(e) => setDrawingConfig({ ...drawingBrushConfig, color: e.target.value })} />
                 </label>
                 <label>
                     粗细：
@@ -144,8 +156,8 @@ function SharedCanvasPage() {
                         type="range"
                         min={1}
                         max={20}
-                        value={width}
-                        onChange={(e) => setWidth(Number(e.target.value))}
+                        value={drawingBrushConfig.width}
+                        onChange={(e) => setDrawingConfig({ ...drawingBrushConfig, width: Number(e.target.value) })}
                     />
                 </label>
                 <button
