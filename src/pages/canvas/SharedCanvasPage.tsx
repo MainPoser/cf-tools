@@ -32,15 +32,17 @@ const ToolbarStyle: React.CSSProperties = {
 
 // 3. 画布容器样式 (自动填充剩余空间 + 视觉区分)
 const CanvasContainerStyle: React.CSSProperties = {
-    width: '100%',
-    maxWidth: '1200px',
-    flexGrow: 1, // 核心属性：让容器占据所有剩余的垂直空间
-    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)',
-    borderRadius: '8px',
-    overflow: 'hidden',
-    backgroundColor: '#ffffff',
-    margin: '0 auto', // 居中
-    position: 'relative', // 确保 canvas 元素能基于此容器定位
+  position: "relative",
+  width: "100%",
+  height: "100%",
+  maxWidth: "1200px",
+  flexGrow: 1,
+  border: "1px solid #ddd", // 调试边框
+  borderRadius: "8px",
+  overflow: "hidden",
+  backgroundColor: "#ffffff",
+  boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
+  margin: "0 auto",
 };
 
 // 4. 画布元素样式 (确保填满父容器)
@@ -69,8 +71,21 @@ function SharedCanvasPage() {
 
         const resizeCanvas = () => {
             const { clientWidth, clientHeight } = container;
+            const ratio = window.devicePixelRatio || 1;
+
+            // 设置 canvas 元素的实际分辨率
             canvas.setWidth(clientWidth);
             canvas.setHeight(clientHeight);
+
+            // 同步内部像素分辨率，避免模糊或错位
+            const ctx = canvas.getContext();
+            if (ctx) {
+                const el = canvas.getElement();
+                el.width = clientWidth * ratio;
+                el.height = clientHeight * ratio;
+                ctx.scale(ratio, ratio);
+            }
+
             canvas.calcOffset();
             canvas.requestRenderAll();
         };
