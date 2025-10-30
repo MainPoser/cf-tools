@@ -7,6 +7,7 @@ import MainLayout from './components/MainLayout'; // 导入我们创建的布局
 import Home from './pages/home/Home';
 import About from './pages/about/About';
 import Base64Tool from './pages/tools/Base64Tool';
+import JsonFormatter from './pages/tools/JsonFormatter';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
 
           {/* 工具页面路由 - 现在只添加Base64 */}
           <Route path="/tools/base64" element={<Base64Tool />} />
+          <Route path="/tools/json-formatter" element={<JsonFormatter />} />
 
           {/* 可选: 404 页面 */}
           <Route path="*" element={<h2>404 Not Found</h2>} />

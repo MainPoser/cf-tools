@@ -32,7 +32,7 @@ function Home() {
             description: '格式化和验证JSON数据',
             icon: <CodeOutlined style={{ fontSize: '24px', color: '#52c41a' }} />,
             path: '/tools/json-formatter',
-            available: false
+            available: true
         },
         {
             title: 'URL编解码',
