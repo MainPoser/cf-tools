@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, Input, Button, Typography, Space, message } from 'antd';
 import { CopyOutlined, SwapOutlined } from '@ant-design/icons';
 
@@ -85,8 +85,8 @@ export default function Base64Tool() {
                             rows={6}
                             style={{ backgroundColor: '#f5f5f5' }}
                         />
-                        <Button 
-                            icon={<CopyOutlined />} 
+                        <Button
+                            icon={<CopyOutlined />}
                             onClick={() => handleCopy(output)}
                             disabled={!output}
                             style={{ marginTop: '8px' }}

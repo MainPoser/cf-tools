@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Layout, Menu, theme } from 'antd';
 import { 
     UserOutlined, 
-    CoffeeOutlined, 
     PictureOutlined,
     ToolOutlined,
     CodeOutlined,
