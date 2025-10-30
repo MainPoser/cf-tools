@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import { Layout, Menu, theme } from 'antd';
-import { UserOutlined, CoffeeOutlined, PictureOutlined } from '@ant-design/icons';
+import { 
+    UserOutlined, 
+    CoffeeOutlined, 
+    PictureOutlined,
+    ToolOutlined,
+    CodeOutlined,
+    LinkOutlined,
+    ClockCircleOutlined,
+    QrcodeOutlined,
+    BgColorsOutlined,
+    FileTextOutlined,
+    LockOutlined
+} from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 import './MainLayout.css';
 
@@ -9,7 +21,21 @@ const { Header, Content, Footer, Sider } = Layout;
 // 定义侧边栏菜单项
 const items = [
     { key: '/', icon: <UserOutlined />, label: <Link to="/">首页</Link> },
-    { key: '/canvas/default', icon: <CoffeeOutlined />, label: <Link to="/canvas/default">共享画布</Link> },
+    { 
+        key: '/tools', 
+        icon: <ToolOutlined />, 
+        label: '工具集',
+        children: [
+            { key: '/tools/base64', icon: <CodeOutlined />, label: <Link to="/tools/base64">Base64编解码</Link> },
+            { key: '/tools/json-formatter', icon: <CodeOutlined />, label: <Link to="/tools/json-formatter">JSON格式化</Link> },
+            { key: '/tools/url-encoder', icon: <LinkOutlined />, label: <Link to="/tools/url-encoder">URL编解码</Link> },
+            { key: '/tools/timestamp', icon: <ClockCircleOutlined />, label: <Link to="/tools/timestamp">时间戳转换</Link> },
+            { key: '/tools/qr-code', icon: <QrcodeOutlined />, label: <Link to="/tools/qr-code">二维码生成</Link> },
+            { key: '/tools/color-picker', icon: <BgColorsOutlined />, label: <Link to="/tools/color-picker">颜色选择器</Link> },
+            { key: '/tools/markdown', icon: <FileTextOutlined />, label: <Link to="/tools/markdown">Markdown预览</Link> },
+            { key: '/tools/password', icon: <LockOutlined />, label: <Link to="/tools/password">密码生成器</Link> },
+        ]
+    },
     { key: '/about', icon: <PictureOutlined />, label: <Link to="/about">关于</Link> },
 ];
 
@@ -22,7 +48,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     const location = useLocation(); // 获取当前路由信息
 
     // 获取当前激活的菜单项
-    const selectedKey = items.find(item => item.key === location.pathname)?.key || '/';
+    const selectedKey = location.pathname;
 
     const {
         token: { colorBgContainer, borderRadiusLG },
@@ -69,7 +95,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                     style={{ background: colorBgContainer }}
                 >
                     <div className="header-content">
-                        Cloudflare React 应用
+                        开发者工具集 - CF Tools
                     </div>
                 </Header>
 

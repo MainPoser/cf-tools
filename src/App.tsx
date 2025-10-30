@@ -6,7 +6,7 @@ import MainLayout from './components/MainLayout'; // 导入我们创建的布局
 // 导入你的页面
 import Home from './pages/home/Home';
 import About from './pages/about/About';
-import Canvas from "./pages/canvas/Canvas";
+import Base64Tool from './pages/tools/Base64Tool';
 
 function App() {
   return (
@@ -21,8 +21,8 @@ function App() {
           {/* About 页面路由 */}
           <Route path="/about" element={<About />} />
 
-          {/* Canvas 页面路由 */}
-          <Route path="/canvas/:roomId" element={<Canvas />} />
+          {/* 工具页面路由 - 现在只添加Base64 */}
+          <Route path="/tools/base64" element={<Base64Tool />} />
 
           {/* 可选: 404 页面 */}
           <Route path="*" element={<h2>404 Not Found</h2>} />

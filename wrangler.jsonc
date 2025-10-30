@@ -14,22 +14,22 @@
 	"observability": {
 		"enabled": true
 	},
-	"durable_objects": {
-		"bindings": [
-			{
-				"name": "CANVAS_ROOM",
-				"class_name": "CanvasRoom"
-			}
-		]
-	},
-	"migrations": [
-		{
-			"tag": "v1",
-			"new_sqlite_classes": [
-				"CanvasRoom"
-			]
-		}
-	]
+	// "durable_objects": {
+	// 	"bindings": [
+	// 		{
+	// 			"name": "CANVAS_ROOM",
+	// 			"class_name": "CanvasRoom"
+	// 		}
+	// 	]
+	// },
+	// "migrations": [
+	// 	{
+	// 		"tag": "v1",
+	// 		"new_sqlite_classes": [
+	// 			"CanvasRoom"
+	// 		]
+	// 	}
+	// ]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
