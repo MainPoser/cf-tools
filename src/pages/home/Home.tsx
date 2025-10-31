@@ -70,7 +70,7 @@ function Home() {
             description: '实时预览Markdown文档',
             icon: <FileTextOutlined style={{ fontSize: '24px', color: '#13c2c2' }} />,
             path: '/tools/markdown',
-            available: false
+            available: true
         },
         {
             title: '密码生成器',
