@@ -1,132 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, Input, Button, Typography, Space, message, Slider, Select, Row, Col } from 'antd';
 import { CopyOutlined, DownloadOutlined, QrcodeOutlined } from '@ant-design/icons';
+import QRCode from 'qrcode';
 import { useAutoTrackVisit } from '../../hooks/useAnalytics';
 
 const { TextArea } = Input;
 const { Title, Paragraph } = Typography;
 const { Option } = Select;
-
-// 简单的二维码生成器类
-class SimpleQRCode {
-    private size: number;
-    private modules: boolean[][];
-
-    constructor(text: string, size: number = 25) {
-        this.size = size;
-        this.modules = [];
-        this.generate(text);
-    }
-
-    private generate(text: string): void {
-        // 初始化模块矩阵
-        this.modules = Array(this.size).fill(null).map(() => Array(this.size).fill(false));
-        
-        // 简化的二维码生成算法
-        // 1. 添加定位图案
-        this.addPositionPatterns();
-        
-        // 2. 添加数据（简化版本）
-        this.addData(text);
-        
-        // 3. 添加掩码（简化版本）
-        this.applyMask();
-    }
-
-    private addPositionPatterns(): void {
-        // 添加三个角的定位图案
-        const positions = [
-            [0, 0], [this.size - 7, 0], [0, this.size - 7]
-        ];
-        
-        positions.forEach(([x, y]) => {
-            // 7x7 定位图案
-            for (let i = 0; i < 7; i++) {
-                for (let j = 0; j < 7; j++) {
-                    if (x + i < this.size && y + j < this.size) {
-                        this.modules[x + i][y + j] = 
-                            i === 0 || i === 6 || j === 0 || j === 6 || // 外边框
-                            (i >= 2 && i <= 4 && j >= 2 && j <= 4); // 内部方块
-                    }
-                }
-            }
-        });
-    }
-
-    private addData(text: string): void {
-        // 简化的数据编码
-        const binary = this.textToBinary(text);
-        let dataIndex = 0;
-        
-        // 从右下角开始螺旋填充数据
-        for (let i = this.size - 1; i >= 0 && dataIndex < binary.length; i -= 2) {
-            for (let j = this.size - 1; j >= 0 && dataIndex < binary.length; j--) {
-                if (this.canPlaceModule(i, j) && dataIndex < binary.length) {
-                    this.modules[i][j] = binary[dataIndex] === '1';
-                    dataIndex++;
-                }
-                if (i - 1 >= 0 && this.canPlaceModule(i - 1, j) && dataIndex < binary.length) {
-                    this.modules[i - 1][j] = binary[dataIndex] === '1';
-                    dataIndex++;
-                }
-            }
-        }
-    }
-
-    private textToBinary(text: string): string {
-        return text.split('').map(char => 
-            char.charCodeAt(0).toString(2).padStart(8, '0')
-        ).join('');
-    }
-
-    private canPlaceModule(x: number, y: number): boolean {
-        // 检查是否可以放置模块（不在定位图案区域）
-        const inPositionPattern = 
-            (x < 9 && y < 9) || // 左上角
-            (x >= this.size - 8 && y < 9) || // 右上角
-            (x < 9 && y >= this.size - 8); // 左下角
-        
-        return !inPositionPattern;
-    }
-
-    private applyMask(): void {
-        // 简单的掩码模式
-        for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
-                if ((i + j) % 2 === 0) {
-                    this.modules[i][j] = !this.modules[i][j];
-                }
-            }
-        }
-    }
-
-    public getModules(): boolean[][] {
-        return this.modules;
-    }
-
-    public renderToCanvas(canvas: HTMLCanvasElement, scale: number = 10): void {
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const canvasSize = this.size * scale;
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
-
-        // 白色背景
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvasSize, canvasSize);
-
-        // 绘制二维码模块
-        ctx.fillStyle = '#000000';
-        for (let i = 0; i < this.size; i++) {
-            for (let j = 0; j < this.size; j++) {
-                if (this.modules[i][j]) {
-                    ctx.fillRect(i * scale, j * scale, scale, scale);
-                }
-            }
-        }
-    }
-}
 
 export default function QRCodeGenerator() {
     // 自动统计页面访问
@@ -136,10 +16,18 @@ export default function QRCodeGenerator() {
     const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
     const [size, setSize] = useState(200);
     const [errorCorrection, setErrorCorrection] = useState('M');
+    const [margin, setMargin] = useState(4);
+    const [darkColor, setDarkColor] = useState('#000000');
+    const [lightColor, setLightColor] = useState('#FFFFFF');
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    // 生成二维码（使用纯JavaScript）
-    const generateQRCode = () => {
+    // 将纠错级别转换为qrcode库的格式
+    const getErrorCorrectionLevel = (level: string): 'L' | 'M' | 'Q' | 'H' => {
+        return level as 'L' | 'M' | 'Q' | 'H';
+    };
+
+    // 生成二维码（使用专业qrcode库）
+    const generateQRCode = async () => {
         if (!input.trim()) {
             message.warning('请输入要生成二维码的内容');
             return;
@@ -148,10 +36,17 @@ export default function QRCodeGenerator() {
         try {
             if (!canvasRef.current) return;
 
-            // 计算二维码模块大小
-            const moduleSize = Math.floor(size / 25);
-            const qr = new SimpleQRCode(input, 25);
-            qr.renderToCanvas(canvasRef.current, moduleSize);
+            // 使用qrcode库生成二维码
+            await QRCode.toCanvas(canvasRef.current, input, {
+                width: size,
+                margin: margin,
+                color: {
+                    dark: darkColor,
+                    light: lightColor
+                },
+                errorCorrectionLevel: getErrorCorrectionLevel(errorCorrection),
+                scale: 4 // 每个模块的像素数
+            });
 
             // 转换为Data URL
             const dataUrl = canvasRef.current.toDataURL('image/png');
@@ -201,6 +96,42 @@ export default function QRCodeGenerator() {
         }
     };
 
+    // 生成SVG格式的二维码
+    const generateSVGQRCode = async () => {
+        if (!input.trim()) {
+            message.warning('请输入要生成二维码的内容');
+            return;
+        }
+
+        try {
+            const svg = await QRCode.toString(input, {
+                type: 'svg',
+                width: size,
+                margin: margin,
+                color: {
+                    dark: darkColor,
+                    light: lightColor
+                },
+                errorCorrectionLevel: getErrorCorrectionLevel(errorCorrection)
+            });
+
+            // 创建Blob并下载
+            const blob = new Blob([svg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `qrcode_${Date.now()}.svg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            message.success('SVG二维码已下载');
+        } catch (error) {
+            message.error('SVG二维码生成失败');
+            console.error('SVG QR Code generation error:', error);
+        }
+    };
+
     // 清空
     const handleClear = () => {
         setInput('');
@@ -223,7 +154,7 @@ export default function QRCodeGenerator() {
         } else {
             setQrCodeDataUrl('');
         }
-    }, [input, size]);
+    }, [input, size, errorCorrection, margin, darkColor, lightColor]);
 
     return (
         <div style={{ padding: '24px' }}>
@@ -232,7 +163,7 @@ export default function QRCodeGenerator() {
                 二维码生成器
             </Title>
             <Paragraph>
-                输入文本、网址或其他内容，快速生成对应的二维码。使用纯JavaScript实现，无需网络连接。
+                输入文本、网址或其他内容，快速生成对应的二维码。使用专业qrcode.js库实现，支持多种格式和自定义选项。
             </Paragraph>
 
             <Card title="二维码生成" style={{ marginBottom: '16px' }}>
@@ -250,8 +181,8 @@ export default function QRCodeGenerator() {
                     </div>
 
                     <Row gutter={16}>
-                        <Col span={12}>
-                            <Title level={4}>二维码尺寸: {size}px</Title>
+                        <Col span={8}>
+                            <Title level={4}>尺寸: {size}px</Title>
                             <Slider
                                 min={100}
                                 max={500}
@@ -266,13 +197,29 @@ export default function QRCodeGenerator() {
                                 }}
                             />
                         </Col>
-                        <Col span={12}>
+                        <Col span={8}>
+                            <Title level={4}>边距: {margin}</Title>
+                            <Slider
+                                min={0}
+                                max={10}
+                                value={margin}
+                                onChange={setMargin}
+                                marks={{
+                                    0: '0',
+                                    2: '2',
+                                    4: '4',
+                                    6: '6',
+                                    8: '8',
+                                    10: '10'
+                                }}
+                            />
+                        </Col>
+                        <Col span={8}>
                             <Title level={4}>纠错级别</Title>
                             <Select
                                 value={errorCorrection}
                                 onChange={setErrorCorrection}
                                 style={{ width: '100%' }}
-                                disabled={false}
                             >
                                 <Option value="L">低 (L) - 7% 纠错能力</Option>
                                 <Option value="M">中 (M) - 15% 纠错能力</Option>
@@ -282,12 +229,36 @@ export default function QRCodeGenerator() {
                         </Col>
                     </Row>
 
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <Title level={4}>前景色</Title>
+                            <Input
+                                type="color"
+                                value={darkColor}
+                                onChange={(e) => setDarkColor(e.target.value)}
+                                style={{ width: '100%', height: '40px' }}
+                            />
+                        </Col>
+                        <Col span={12}>
+                            <Title level={4}>背景色</Title>
+                            <Input
+                                type="color"
+                                value={lightColor}
+                                onChange={(e) => setLightColor(e.target.value)}
+                                style={{ width: '100%', height: '40px' }}
+                            />
+                        </Col>
+                    </Row>
+
                     <Space>
                         <Button type="primary" onClick={generateQRCode} icon={<QrcodeOutlined />}>
                             生成二维码
                         </Button>
                         <Button onClick={handleClear}>
                             清空
+                        </Button>
+                        <Button onClick={generateSVGQRCode}>
+                            下载SVG
                         </Button>
                     </Space>
 
@@ -303,13 +274,13 @@ export default function QRCodeGenerator() {
                                         height: 'auto',
                                         border: '1px solid #d9d9d9',
                                         borderRadius: '4px',
-                                        backgroundColor: 'white'
+                                        backgroundColor: lightColor
                                     }}
                                 />
                             </div>
                             <Space style={{ marginTop: '12px' }}>
                                 <Button icon={<DownloadOutlined />} onClick={downloadQRCode}>
-                                    下载二维码
+                                    下载PNG
                                 </Button>
                                 <Button icon={<CopyOutlined />} onClick={copyQRCode}>
                                     复制图片
@@ -325,10 +296,13 @@ export default function QRCodeGenerator() {
                     <div>
                         <Title level={5}>功能特点：</Title>
                         <ul>
-                            <li>✅ 纯JavaScript实现，无需网络连接</li>
+                            <li>✅ 使用专业qrcode.js库，符合ISO标准</li>
+                            <li>✅ 支持多种纠错级别 (L/M/Q/H)</li>
+                            <li>✅ 支持自定义尺寸和边距</li>
+                            <li>✅ 支持自定义前景色和背景色</li>
+                            <li>✅ 支持PNG和SVG两种格式导出</li>
                             <li>✅ 本地生成，保护隐私</li>
-                            <li>✅ 支持自定义尺寸</li>
-                            <li>✅ 支持下载和复制功能</li>
+                            <li>✅ 支持复制到剪贴板</li>
                         </ul>
                     </div>
                     <div>
@@ -340,14 +314,23 @@ export default function QRCodeGenerator() {
                             <li>联系方式 (vCard格式)</li>
                             <li>邮件地址 (mailto:email@example.com)</li>
                             <li>电话号码 (tel:+8613800138000)</li>
+                            <li>短信 (smsto:+8613800138000:短信内容)</li>
                         </ul>
                     </div>
                     <div>
-                        <Title level={5}>注意事项：</Title>
+                        <Title level={5}>纠错级别说明：</Title>
                         <ul>
-                            <li>当前为简化版本，适用于基本需求</li>
-                            <li>复杂内容建议使用专业二维码库</li>
-                            <li>生成的二维码可能不如标准库精确</li>
+                            <li><strong>低 (L)</strong>：约7%的纠错能力，可容纳最多数据</li>
+                            <li><strong>中 (M)</strong>：约15%的纠错能力，平衡数据容量和纠错</li>
+                            <li><strong>较高 (Q)</strong>：约25%的纠错能力，适合重要数据</li>
+                            <li><strong>高 (H)</strong>：约30%的纠错能力，最适合恶劣环境</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <Title level={5}>格式说明：</Title>
+                        <ul>
+                            <li><strong>PNG格式</strong>：位图格式，适合直接使用和分享</li>
+                            <li><strong>SVG格式</strong>：矢量格式，可无限缩放不失真，适合印刷和设计</li>
                         </ul>
                     </div>
                 </Space>
