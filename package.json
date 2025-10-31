@@ -12,6 +12,7 @@
 		"cf-typegen": "wrangler types"
 	},
 	"dependencies": {
+		"@ant-design/v5-patch-for-react-19": "^1.0.3",
 		"antd": "^5.27.6",
 		"js-yaml": "^4.1.0",
 		"react": "^19.1.1",

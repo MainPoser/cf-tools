@@ -7,8 +7,6 @@ import * as yaml from 'js-yaml';
 const { TextArea } = Input;
 const { Title, Paragraph } = Typography;
 const { Option } = Select;
-const { TabPane } = Tabs;
-
 
 type FormatType = 'json' | 'yaml' | 'xml' | 'toml' | 'csv';
 
@@ -43,22 +41,25 @@ export default function ConfigFormatter() {
         return 'json';
     };
 
-    // 解析输入内容
-    const parseInput = (text: string, format: FormatType): any => {
+    // 解析输入内容 - 返回 { success: boolean, data?: any, error?: string }
+    const parseInput = (text: string, format: FormatType): { success: boolean; data?: any; error?: string } => {
         try {
             switch (format) {
                 case 'json':
-                    return JSON.parse(text);
+                    return { success: true, data: JSON.parse(text) };
                 case 'yaml':
-                    return yaml.load(text);
+                    return { success: true, data: yaml.load(text) };
                 case 'xml':
                     // 简单的XML解析（实际项目中建议使用更强大的XML解析库）
-                    throw new Error('XML解析功能开发中');
+                    return { success: false, error: 'XML解析功能开发中' };
                 case 'toml':
-                    throw new Error('TOML解析功能开发中');
+                    return { success: false, error: 'TOML解析功能开发中' };
                 case 'csv':
                     // 简单的CSV解析
                     const lines = text.split('\n').filter(line => line.trim());
+                    if (lines.length === 0) {
+                        return { success: false, error: 'CSV内容为空' };
+                    }
                     const headers = lines[0].split(',').map(h => h.trim());
                     const data = lines.slice(1).map(line => {
                         const values = line.split(',').map(v => v.trim());
@@ -68,33 +69,28 @@ export default function ConfigFormatter() {
                         });
                         return obj;
                     });
-                    return data;
+                    return { success: true, data };
                 default:
-                    throw new Error('不支持的格式');
+                    return { success: false, error: '不支持的格式' };
             }
         } catch (error: unknown) {
-            if (error instanceof Error) { // ✅ 类型检查：确保它是一个 Error 对象
-                // 现在 TypeScript 知道 error 有 message 和 stack 属性
-                throw new Error(`解析${format.toUpperCase()}失败: ${error.message}`);
-            } else {
-                // 处理非标准错误，例如抛出的字符串或数字
-                throw new Error(`解析${format.toUpperCase()}失败: ${error}`);
-            }
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return { success: false, error: `解析${format.toUpperCase()}失败: ${errorMessage}` };
         }
     };
 
-    // 格式化输出内容
-    const formatOutput = (data: any, format: FormatType): string => {
+    // 格式化输出内容 - 返回 { success: boolean, result?: string, error?: string }
+    const formatOutput = (data: any, format: FormatType): { success: boolean; result?: string; error?: string } => {
         try {
             switch (format) {
                 case 'json':
-                    return JSON.stringify(data, null, indentSize);
+                    return { success: true, result: JSON.stringify(data, null, indentSize) };
                 case 'yaml':
-                    return yaml.dump(data, { indent: indentSize });
+                    return { success: true, result: yaml.dump(data, { indent: indentSize }) };
                 case 'xml':
-                    throw new Error('XML输出功能开发中');
+                    return { success: false, error: 'XML输出功能开发中' };
                 case 'toml':
-                    throw new Error('TOML输出功能开发中');
+                    return { success: false, error: 'TOML输出功能开发中' };
                 case 'csv':
                     if (Array.isArray(data) && data.length > 0) {
                         const headers = Object.keys(data[0]);
@@ -103,23 +99,17 @@ export default function ConfigFormatter() {
                             const values = headers.map(header => row[header] || '');
                             csvLines.push(values.join(','));
                         });
-                        return csvLines.join('\n');
+                        return { success: true, result: csvLines.join('\n') };
                     }
-                    throw new Error('CSV格式要求数组格式');
+                    return { success: false, error: 'CSV格式要求数组格式' };
                 default:
-                    throw new Error('不支持的输出格式');
+                    return { success: false, error: '不支持的输出格式' };
             }
-        } catch (error) {
-            if (error instanceof Error) { // ✅ 类型检查：确保它是一个 Error 对象
-                // 现在 TypeScript 知道 error 有 message 和 stack 属性
-                throw new Error(`生成${format.toUpperCase()}失败: ${error.message}`);
-            } else {
-                // 处理非标准错误，例如抛出的字符串或数字
-                throw new Error(`生成${format.toUpperCase()}失败: ${error}`);
-            }
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return { success: false, error: `生成${format.toUpperCase()}失败: ${errorMessage}` };
         }
     };
-
     // 格式转换
     const handleConvert = () => {
         if (!input.trim()) {
@@ -127,20 +117,20 @@ export default function ConfigFormatter() {
             return;
         }
 
-        try {
-            const parsedData = parseInput(input, inputFormat);
-            const formattedOutput = formatOutput(parsedData, outputFormat);
-            setOutput(formattedOutput);
-            message.success(`${inputFormat.toUpperCase()} 转 ${outputFormat.toUpperCase()} 成功`);
-        } catch (error) {
-            if (error instanceof Error) { // ✅ 类型检查：确保它是一个 Error 对象
-                // 现在 TypeScript 知道 error 有 message 和 stack 属性
-                message.error(error.message);
-            } else {
-                // 处理非标准错误，例如抛出的字符串或数字
-                throw new Error(`转换失败: ${error}`);
-            }
+        const parseResult = parseInput(input, inputFormat);
+        if (!parseResult.success) {
+            message.error(parseResult.error);
+            return;
         }
+
+        const formatResult = formatOutput(parseResult.data, outputFormat);
+        if (!formatResult.success) {
+            message.error(formatResult.error);
+            return;
+        }
+
+        setOutput(formatResult.result || '');
+        message.success(`${inputFormat.toUpperCase()} 转 ${outputFormat.toUpperCase()} 成功`);
     };
 
     // 格式化（同格式美化）
@@ -150,20 +140,20 @@ export default function ConfigFormatter() {
             return;
         }
 
-        try {
-            const parsedData = parseInput(input, inputFormat);
-            const formattedOutput = formatOutput(parsedData, inputFormat);
-            setOutput(formattedOutput);
-            message.success(`${inputFormat.toUpperCase()}格式化成功`);
-        } catch (error) {
-            if (error instanceof Error) { // ✅ 类型检查：确保它是一个 Error 对象
-                // 现在 TypeScript 知道 error 有 message 和 stack 属性
-                message.error(error.message);
-            } else {
-                // 处理非标准错误，例如抛出的字符串或数字
-                throw new Error(`格式化失败: ${error}`);
-            }
+        const parseResult = parseInput(input, inputFormat);
+        if (!parseResult.success) {
+            message.error(parseResult.error);
+            return;
         }
+
+        const formatResult = formatOutput(parseResult.data, inputFormat);
+        if (!formatResult.success) {
+            message.error(formatResult.error);
+            return;
+        }
+
+        setOutput(formatResult.result || '');
+        message.success(`${inputFormat.toUpperCase()}格式化成功`);
     };
 
     // 压缩
@@ -173,23 +163,29 @@ export default function ConfigFormatter() {
             return;
         }
 
+        const parseResult = parseInput(input, inputFormat);
+        if (!parseResult.success) {
+            message.error(parseResult.error);
+            return;
+        }
+
         try {
-            const parsedData = parseInput(input, inputFormat);
-            const minifiedOutput = formatOutput(parsedData, inputFormat === 'json' ? 'json' : inputFormat);
+            let minifiedOutput: string;
             if (inputFormat === 'json') {
-                setOutput(JSON.stringify(parsedData));
+                minifiedOutput = JSON.stringify(parseResult.data);
             } else {
-                setOutput(minifiedOutput);
+                const formatResult = formatOutput(parseResult.data, inputFormat);
+                if (!formatResult.success) {
+                    message.error(formatResult.error);
+                    return;
+                }
+                minifiedOutput = formatResult.result || '';
             }
+            setOutput(minifiedOutput);
             message.success(`${inputFormat.toUpperCase()}压缩成功`);
-        } catch (error) {
-            if (error instanceof Error) { // ✅ 类型检查：确保它是一个 Error 对象
-                // 现在 TypeScript 知道 error 有 message 和 stack 属性
-                message.error(error.message);
-            } else {
-                // 处理非标准错误，例如抛出的字符串或数字
-                throw new Error(`压缩失败: ${error}`);
-            }
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            message.error(`压缩失败: ${errorMessage}`);
         }
     };
 
@@ -200,18 +196,13 @@ export default function ConfigFormatter() {
             return;
         }
 
-        try {
-            parseInput(input, inputFormat);
-            message.success(`${inputFormat.toUpperCase()}格式验证通过`);
-        } catch (error) {
-            if (error instanceof Error) { // ✅ 类型检查：确保它是一个 Error 对象
-                // 现在 TypeScript 知道 error 有 message 和 stack 属性
-                message.error(error.message);
-            } else {
-                // 处理非标准错误，例如抛出的字符串或数字
-                throw new Error(`格式验证失败: ${error}`);
-            }
+        const parseResult = parseInput(input, inputFormat);
+        if (!parseResult.success) {
+            message.error(parseResult.error);
+            return;
         }
+
+        message.success(`${inputFormat.toUpperCase()}格式验证通过`);
     };
 
     // 自动检测格式
@@ -236,7 +227,9 @@ export default function ConfigFormatter() {
             message.warning('没有可复制的内容');
             return;
         }
-        navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(text).catch(() => {
+            message.error('复制失败，请手动复制');
+        });
         message.success('已复制到剪贴板');
     };
 
@@ -256,6 +249,69 @@ export default function ConfigFormatter() {
         message.success('已复制到输入区域');
     };
 
+
+    const examplesTabItems = [
+        {
+            key: 'json',
+            label: 'JSON 示例', // 对应旧的 tab 属性
+            children: (<Alert
+                message="JSON 格式示例"
+                description={
+                    <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                        {`{
+  "name": "example-app",
+  "version": "1.0.0",
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "myapp"
+  },
+  "features": ["auth", "logging", "cache"]
+}`}
+                    </pre>
+                }
+                type="info"
+            />)
+        },
+        {
+            key: 'yaml',
+            label: 'YAML 示例', // 对应旧的 tab 属性
+            children: (<Alert
+                message="YAML 格式示例"
+                description={
+                    <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                        {`name: example-app
+version: 1.0.0
+database:
+  host: localhost
+  port: 5432
+  name: myapp
+features:
+  - auth
+  - logging
+  - cache`}
+                    </pre>
+                }
+                type="info"
+            />)
+        },
+        {
+            key: 'csv',
+            label: 'CSV 示例', // 对应旧的 tab 属性
+            children: (                        <Alert
+                            message="CSV 格式示例"
+                            description={
+                                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                                    {`name,age,city
+Alice,25,New York
+Bob,30,London
+Charlie,35,Tokyo`}
+                                </pre>
+                            }
+                            type="info"
+                        />)
+        }
+    ]
 
     const tabItems = [
         {
@@ -373,63 +429,7 @@ export default function ConfigFormatter() {
             key: 'examples',
             label: '使用示例',
             children: (<Card title="常见格式示例">
-                <Tabs defaultActiveKey="json">
-                    <TabPane tab="JSON 示例" key="json">
-                        <Alert
-                            message="JSON 格式示例"
-                            description={
-                                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
-                                    {`{
-  "name": "example-app",
-  "version": "1.0.0",
-  "database": {
-    "host": "localhost",
-    "port": 5432,
-    "name": "myapp"
-  },
-  "features": ["auth", "logging", "cache"]
-}`}
-                                </pre>
-                            }
-                            type="info"
-                        />
-                    </TabPane>
-
-                    <TabPane tab="YAML 示例" key="yaml">
-                        <Alert
-                            message="YAML 格式示例"
-                            description={
-                                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
-                                    {`name: example-app
-version: 1.0.0
-database:
-  host: localhost
-  port: 5432
-  name: myapp
-features:
-  - auth
-  - logging
-  - cache`}
-                                </pre>
-                            }
-                            type="info"
-                        />
-                    </TabPane>
-
-                    <TabPane tab="CSV 示例" key="csv">
-                        <Alert
-                            message="CSV 格式示例"
-                            description={
-                                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
-                                    {`name,age,city
-Alice,25,New York
-Bob,30,London
-Charlie,35,Tokyo`}
-                                </pre>
-                            }
-                            type="info"
-                        />
-                    </TabPane>
+                <Tabs defaultActiveKey="json" items={examplesTabItems}>
                 </Tabs>
             </Card>),
         }
