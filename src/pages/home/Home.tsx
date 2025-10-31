@@ -55,8 +55,8 @@ function Home() {
             title: '二维码生成',
             description: '生成各种内容的二维码',
             icon: <QrcodeOutlined style={{ fontSize: '24px', color: '#722ed1' }} />,
-            path: '/tools/qr-code',
-            available: false
+            path: '/tools/qr-code-generator',
+            available: true
         },
         {
             title: '颜色选择器',

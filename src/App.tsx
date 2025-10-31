@@ -10,6 +10,7 @@ import Base64Tool from './pages/tools/Base64Tool';
 import ConfigFormatter from './pages/tools/ConfigFormatter';
 import URLCodec from './pages/tools/URLCodec';
 import Timestamp from './pages/tools/Timestamp';  
+import QRCodeGenerator from './pages/tools/QRCodeGenerator';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/tools/config-formatter" element={<ConfigFormatter />} />
           <Route path="/tools/url-codec" element={<URLCodec />} />
           <Route path="/tools/timestamp" element={<Timestamp />} />
+           <Route path="/tools/qr-code-generator" element={<QRCodeGenerator />} />
           
 
           {/* 可选: 404 页面 */}
