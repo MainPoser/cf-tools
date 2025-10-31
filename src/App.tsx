@@ -9,6 +9,7 @@ import About from './pages/about/About';
 import Base64Tool from './pages/tools/Base64Tool';
 import ConfigFormatter from './pages/tools/ConfigFormatter';
 import URLCodec from './pages/tools/URLCodec';
+import Timestamp from './pages/tools/Timestamp';  
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/tools/base64" element={<Base64Tool />} />
           <Route path="/tools/config-formatter" element={<ConfigFormatter />} />
           <Route path="/tools/url-codec" element={<URLCodec />} />
+          <Route path="/tools/timestamp" element={<Timestamp />} />
           
 
           {/* 可选: 404 页面 */}

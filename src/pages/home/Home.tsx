@@ -49,7 +49,7 @@ function Home() {
             description: '时间戳与日期格式互转',
             icon: <ClockCircleOutlined style={{ fontSize: '24px', color: '#eb2f96' }} />,
             path: '/tools/timestamp',
-            available: false
+            available: true
         },
         {
             title: '二维码生成',
