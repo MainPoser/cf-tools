@@ -51,9 +51,9 @@ export default function ConfigFormatter() {
                     return { success: true, data: yaml.load(text) };
                 case 'xml':
                     // 简单的XML解析（实际项目中建议使用更强大的XML解析库）
-                    return { success: false, error: 'XML解析功能开发中' };
+                    return parseXml(text);
                 case 'toml':
-                    return { success: false, error: 'TOML解析功能开发中' };
+                    return parseToml(text);
                 case 'csv':
                     // 简单的CSV解析
                     const lines = text.split('\n').filter(line => line.trim());
@@ -79,6 +79,217 @@ export default function ConfigFormatter() {
         }
     };
 
+    // XML解析函数
+    const parseXml = (text: string): { success: boolean; data?: any; error?: string } => {
+        try {
+            if (typeof window === 'undefined') {
+                return { success: false, error: 'XML解析需要在浏览器环境中运行' };
+            }
+
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(text, 'text/xml');
+
+            // 检查解析错误
+            const parseError = xmlDoc.getElementsByTagName('parsererror');
+            if (parseError.length > 0) {
+                return { success: false, error: 'XML格式错误: ' + parseError[0].textContent };
+            }
+
+            // 递归转换XML节点为对象
+            const xmlToObject = (node: Element): any => {
+                const obj: any = {};
+
+                // 处理属性
+                if (node.attributes.length > 0) {
+                    obj['@attributes'] = {};
+                    for (let i = 0; i < node.attributes.length; i++) {
+                        const attr = node.attributes[i];
+                        obj['@attributes'][attr.name] = attr.value;
+                    }
+                }
+
+                // 处理子元素
+                const children = node.children;
+                if (children.length > 0) {
+                    for (let i = 0; i < children.length; i++) {
+                        const child = children[i];
+                        const childName = child.tagName;
+                        const childValue = xmlToObject(child);
+
+                        if (obj[childName]) {
+                            // 如果已存在同名元素，转换为数组
+                            if (!Array.isArray(obj[childName])) {
+                                obj[childName] = [obj[childName]];
+                            }
+                            obj[childName].push(childValue);
+                        } else {
+                            obj[childName] = childValue;
+                        }
+                    }
+                } else {
+                    // 如果没有子元素，获取文本内容
+                    const textContent = node.textContent?.trim();
+                    if (textContent && Object.keys(obj).length === 0) {
+                        return textContent;
+                    }
+                    if (textContent) {
+                        obj['#text'] = textContent;
+                    }
+                }
+
+                return obj;
+            };
+
+            const result = xmlToObject(xmlDoc.documentElement);
+            return { success: true, data: result };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return { success: false, error: `XML解析失败: ${errorMessage}` };
+        }
+    };
+
+    // TOML解析函数
+    const parseToml = (text: string): { success: boolean; data?: any; error?: string } => {
+        try {
+            const lines = text.split('\n');
+            const result: any = {};
+            let currentSection: string[] = [];
+            let isArraySection = false;
+
+            for (let line of lines) {
+                line = line.trim();
+
+                // 跳过空行和注释
+                if (!line || line.startsWith('#')) {
+                    continue;
+                }
+
+                // 处理数组节标题 [[section]]
+                if (line.startsWith('[[') && line.endsWith(']]')) {
+                    const section = line.slice(2, -2).trim();
+                    currentSection = section.split('.');
+                    isArraySection = true;
+
+                    // 确保路径存在并创建数组
+                    let current = result;
+                    for (let i = 0; i < currentSection.length; i++) {
+                        const part = currentSection[i];
+                        if (i === currentSection.length - 1) {
+                            // 最后一个部分，创建数组
+                            if (!current[part]) {
+                                current[part] = [];
+                            } else if (!Array.isArray(current[part])) {
+                                // 如果不是数组，转换为数组
+                                current[part] = [current[part]];
+                            }
+                            // 添加新的数组元素对象
+                            current[part].push({});
+                            current = current[part][current[part].length - 1];
+                        } else {
+                            if (!current[part]) {
+                                current[part] = {};
+                            }
+                            current = current[part];
+                        }
+                    }
+                    continue;
+                }
+
+                // 处理普通节标题 [section]
+                if (line.startsWith('[') && line.endsWith(']')) {
+                    const section = line.slice(1, -1).trim();
+                    currentSection = section.split('.');
+                    isArraySection = false;
+                    let current = result;
+
+                    for (let part of currentSection) {
+                        if (!current[part]) {
+                            current[part] = {};
+                        }
+                        current = current[part];
+                    }
+                    continue;
+                }
+
+                // 处理键值对
+                const equalIndex = line.indexOf('=');
+                if (equalIndex > 0) {
+                    const key = line.slice(0, equalIndex).trim();
+                    let value: string | number | boolean | any[] = line.slice(equalIndex + 1).trim();
+
+                    // 处理数组值 [item1, item2, item3]
+                    if (value.startsWith('[') && value.endsWith(']')) {
+                        const arrayContent = value.slice(1, -1).trim();
+                        if (arrayContent) {
+                            const items = arrayContent.split(',').map(item => {
+                                const trimmedItem = item.trim();
+                                // 移除引号
+                                if ((trimmedItem.startsWith('"') && trimmedItem.endsWith('"')) ||
+                                    (trimmedItem.startsWith("'") && trimmedItem.endsWith("'"))) {
+                                    return trimmedItem.slice(1, -1);
+                                }
+                                // 转换数字
+                                if (!isNaN(Number(trimmedItem))) {
+                                    return Number(trimmedItem);
+                                }
+                                // 转换布尔值
+                                if (trimmedItem === 'true') return true;
+                                if (trimmedItem === 'false') return false;
+                                return trimmedItem;
+                            });
+                            value = items;
+                        } else {
+                            value = [];
+                        }
+                    }
+                    // 处理字符串值
+                    else if ((value.startsWith('"') && value.endsWith('"')) ||
+                        (value.startsWith("'") && value.endsWith("'"))) {
+                        value = value.slice(1, -1);
+                    }
+                    // 转换数字
+                    else if (!isNaN(Number(value))) {
+                        value = Number(value);
+                    }
+                    // 转换布尔值
+                    else if (value === 'true') {
+                        value = true;
+                    } else if (value === 'false') {
+                        value = false;
+                    }
+
+                    // 设置值
+                    let current = result;
+                    if (isArraySection && currentSection.length > 0) {
+                        // 对于数组节，定位到最后一个数组元素
+                        for (let i = 0; i < currentSection.length; i++) {
+                            const part = currentSection[i];
+                            if (i === currentSection.length - 1) {
+                                // 最后一个部分，获取数组的最后一个元素
+                                const arr = current[part];
+                                current = arr[arr.length - 1];
+                            } else {
+                                current = current[part];
+                            }
+                        }
+                    } else {
+                        // 对于普通节，正常定位
+                        for (let part of currentSection) {
+                            current = current[part];
+                        }
+                    }
+                    current[key] = value;
+                }
+            }
+
+            return { success: true, data: result };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return { success: false, error: `TOML解析失败: ${errorMessage}` };
+        }
+    };
+
+
     // 格式化输出内容 - 返回 { success: boolean, result?: string, error?: string }
     const formatOutput = (data: any, format: FormatType): { success: boolean; result?: string; error?: string } => {
         try {
@@ -88,9 +299,9 @@ export default function ConfigFormatter() {
                 case 'yaml':
                     return { success: true, result: yaml.dump(data, { indent: indentSize }) };
                 case 'xml':
-                    return { success: false, error: 'XML输出功能开发中' };
+                    return formatXml(data);
                 case 'toml':
-                    return { success: false, error: 'TOML输出功能开发中' };
+                    return formatToml(data);
                 case 'csv':
                     if (Array.isArray(data) && data.length > 0) {
                         const headers = Object.keys(data[0]);
@@ -110,6 +321,130 @@ export default function ConfigFormatter() {
             return { success: false, error: `生成${format.toUpperCase()}失败: ${errorMessage}` };
         }
     };
+
+    // XML格式化函数
+    const formatXml = (data: any): { success: boolean; result?: string; error?: string } => {
+        try {
+            const objectToXml = (obj: any, tagName: string = 'root', indent: number = 0): string => {
+                const spaces = ' '.repeat(indent * indentSize);
+                let xml = '';
+
+                if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean') {
+                    return `${spaces}<${tagName}>${obj}</${tagName}>\n`;
+                }
+
+                if (Array.isArray(obj)) {
+                    obj.forEach(item => {
+                        xml += objectToXml(item, tagName, indent);
+                    });
+                    return xml;
+                }
+
+                if (typeof obj === 'object' && obj !== null) {
+                    xml += `${spaces}<${tagName}>\n`;
+
+                    // 处理属性
+                    if (obj['@attributes']) {
+                        // 属性处理逻辑可以在这里扩展
+                    }
+
+                    // 处理文本内容
+                    if (obj['#text']) {
+                        xml += `${spaces}${' '.repeat(indentSize)}${obj['#text']}\n`;
+                    }
+
+                    // 处理子元素
+                    for (const [key, value] of Object.entries(obj)) {
+                        if (key !== '@attributes' && key !== '#text') {
+                            xml += objectToXml(value, key, indent + 1);
+                        }
+                    }
+
+                    xml += `${spaces}</${tagName}>\n`;
+                    return xml;
+                }
+
+                return `${spaces}<${tagName}></${tagName}>\n`;
+            };
+
+            const result = objectToXml(data, 'root').trim();
+            return { success: true, result };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return { success: false, error: `XML格式化失败: ${errorMessage}` };
+        }
+    };
+
+    // TOML格式化函数
+    const formatToml = (data: any): { success: boolean; result?: string; error?: string } => {
+        try {
+            const tomlString = (obj: any, sectionName: string = '', isRoot: boolean = true): string => {
+                let result = '';
+
+                for (const [key, value] of Object.entries(obj)) {
+                    if (value === null || value === undefined) {
+                        continue;
+                    }
+
+                    if (Array.isArray(value)) {
+                        // 处理数组
+                        if (value.length === 0) {
+                            result += `${key} = []\n`;
+                        } else if (typeof value[0] === 'object' && value[0] !== null) {
+                            // 对象数组，使用数组节 [[key]]
+                            value.forEach(item => {
+                                result += `\n[[${key}]]\n`;
+                                result += tomlString(item, '', false);
+                            });
+                        } else {
+                            // 基本类型数组
+                            const arrayItems = value.map(item => {
+                                if (typeof item === 'string') {
+                                    return `"${item}"`;
+                                } else if (typeof item === 'boolean') {
+                                    return item.toString();
+                                } else {
+                                    return String(item);
+                                }
+                            });
+                            result += `${key} = [${arrayItems.join(', ')}]\n`;
+                        }
+                    } else if (typeof value === 'object' && value !== null) {
+                        // 处理嵌套对象
+                        if (isRoot) {
+                            // 根级别的对象作为节
+                            result += `\n[${key}]\n`;
+                            result += tomlString(value, '', false);
+                        } else {
+                            // 嵌套对象作为子节
+                            result += `\n[${sectionName ? sectionName + '.' : ''}${key}]\n`;
+                            result += tomlString(value, sectionName ? sectionName + '.' + key : key, false);
+                        }
+                    } else {
+                        // 处理基本类型
+                        let formattedValue = '';
+                        if (typeof value === 'string') {
+                            formattedValue = `"${value}"`;
+                        } else if (typeof value === 'boolean') {
+                            formattedValue = value.toString();
+                        } else {
+                            formattedValue = String(value);
+                        }
+                        result += `${key} = ${formattedValue}\n`;
+                    }
+                }
+
+                return result;
+            };
+
+            const result = tomlString(data).trim();
+            return { success: true, result };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return { success: false, error: `TOML格式化失败: ${errorMessage}` };
+        }
+    };
+
     // 格式转换
     const handleConvert = () => {
         if (!input.trim()) {
@@ -296,20 +631,89 @@ features:
             />)
         },
         {
+            key: 'xml',
+            label: 'XML 示例', // 对应旧的 tab 属性
+            children: (<Alert
+                message="XML 格式示例"
+                description={
+                    <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                        {`<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <name>example-app</name>
+    <version>1.0.0</version>
+    <database>
+        <host>localhost</host>
+        <port>5432</port>
+        <name>myapp</name>
+    </database>
+    <features>
+        <feature>auth</feature>
+        <feature>logging</feature>
+        <feature>cache</feature>
+    </features>
+</config>`}
+                    </pre>
+                }
+                type="info"
+            />)
+        },
+        {
+            key: 'toml',
+            label: 'TOML 示例', // 对应旧的 tab 属性
+            children: (<Alert
+                message="TOML 格式示例"
+                description={
+                    <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                        {`name = "example-app"
+version = "1.0.0"
+enabled = true
+port = 8080
+
+[database]
+host = "localhost"
+port = 5432
+name = "myapp"
+credentials = ["admin", "password"]
+
+[database.backup]
+enabled = true
+schedule = "daily"
+
+[[servers]]
+host = "server1.example.com"
+port = 8080
+weight = 1
+
+[[servers]]
+host = "server2.example.com"
+port = 8080
+weight = 2
+
+[features]
+auth = true
+logging = true
+cache = false
+allowed_ips = ["192.168.1.1", "10.0.0.1"]`}
+                    </pre>
+                }
+                type="info"
+            />)
+        },
+        {
             key: 'csv',
             label: 'CSV 示例', // 对应旧的 tab 属性
-            children: (                        <Alert
-                            message="CSV 格式示例"
-                            description={
-                                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
-                                    {`name,age,city
+            children: (<Alert
+                message="CSV 格式示例"
+                description={
+                    <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                        {`name,age,city
 Alice,25,New York
 Bob,30,London
 Charlie,35,Tokyo`}
-                                </pre>
-                            }
-                            type="info"
-                        />)
+                    </pre>
+                }
+                type="info"
+            />)
         }
     ]
 
