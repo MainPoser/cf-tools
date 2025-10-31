@@ -41,8 +41,8 @@ function Home() {
             title: 'URL编解码',
             description: 'URL编码和解码工具',
             icon: <LinkOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />,
-            path: '/tools/url-encoder',
-            available: false
+            path: '/tools/url-codec',
+            available: true
         },
         {
             title: '时间戳转换',
