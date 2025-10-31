@@ -63,7 +63,7 @@ function Home() {
             description: '颜色选择和格式转换',
             icon: <BgColorsOutlined style={{ fontSize: '24px', color: '#fa541c' }} />,
             path: '/tools/color-picker',
-            available: false
+            available: true
         },
         {
             title: 'Markdown预览',
