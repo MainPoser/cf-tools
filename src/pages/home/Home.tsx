@@ -31,10 +31,10 @@ function Home() {
             available: true
         },
         {
-            title: 'JSON格式化',
-            description: '格式化和验证JSON数据',
+            title: '配置格式转换',
+            description: '格式化&验证&转换配置文件',
             icon: <CodeOutlined style={{ fontSize: '24px', color: '#52c41a' }} />,
-            path: '/tools/json-formatter',
+            path: '/tools/config-formatter',
             available: true
         },
         {

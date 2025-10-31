@@ -26,7 +26,7 @@ const items = [
         label: '工具集',
         children: [
             { key: '/tools/base64', icon: <CodeOutlined />, label: <Link to="/tools/base64">Base64编解码</Link> },
-            { key: '/tools/json-formatter', icon: <CodeOutlined />, label: <Link to="/tools/json-formatter">JSON格式化</Link> },
+            { key: '/tools/config-formatter', icon: <CodeOutlined />, label: <Link to="/tools/config-formatter">配置格式转换</Link> },
             { key: '/tools/url-encoder', icon: <LinkOutlined />, label: <Link to="/tools/url-encoder">URL编解码</Link> },
             { key: '/tools/timestamp', icon: <ClockCircleOutlined />, label: <Link to="/tools/timestamp">时间戳转换</Link> },
             { key: '/tools/qr-code', icon: <QrcodeOutlined />, label: <Link to="/tools/qr-code">二维码生成</Link> },
