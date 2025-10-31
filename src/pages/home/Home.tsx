@@ -134,12 +134,14 @@ function Home() {
                                     opacity: tool.available ? 1 : 0.6,
                                     cursor: tool.available ? 'pointer' : 'not-allowed'
                                 }}
-                                bodyStyle={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'space-between',
-                                    height: '100%',
-                                    padding: '16px'
+                                styles={{
+                                    body: {
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        height: '100%',
+                                        padding: '16px'
+                                    }
                                 }}
                                 onClick={() => tool.available && navigate(tool.path)}
                             >

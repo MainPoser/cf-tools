@@ -9,6 +9,7 @@ const { Title, Paragraph } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
+
 type FormatType = 'json' | 'yaml' | 'xml' | 'toml' | 'csv';
 
 export default function ConfigFormatter() {
@@ -255,6 +256,185 @@ export default function ConfigFormatter() {
         message.success('已复制到输入区域');
     };
 
+
+    const tabItems = [
+        {
+            key: 'converter',
+            label: '格式转换', // 对应旧的 tab 属性
+            children: (<Card title="配置格式转换" style={{ marginBottom: '16px' }}>
+                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                    {/* 格式选择 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                        <span>输入格式:</span>
+                        <Select
+                            value={inputFormat}
+                            onChange={setInputFormat}
+                            style={{ width: 120 }}
+                        >
+                            <Option value="json">JSON</Option>
+                            <Option value="yaml">YAML</Option>
+                            <Option value="xml">XML</Option>
+                            <Option value="toml">TOML</Option>
+                            <Option value="csv">CSV</Option>
+                        </Select>
+
+                        <SwapOutlined onClick={handleSwap} style={{ cursor: 'pointer', fontSize: '16px' }} />
+
+                        <span>输出格式:</span>
+                        <Select
+                            value={outputFormat}
+                            onChange={setOutputFormat}
+                            style={{ width: 120 }}
+                        >
+                            <Option value="json">JSON</Option>
+                            <Option value="yaml">YAML</Option>
+                            <Option value="xml">XML</Option>
+                            <Option value="toml">TOML</Option>
+                            <Option value="csv">CSV</Option>
+                        </Select>
+
+                        <Button onClick={handleAutoDetect} size="small">
+                            自动检测
+                        </Button>
+                    </div>
+
+                    {/* 输入区域 */}
+                    <div>
+                        <Title level={4}>输入内容 ({inputFormat.toUpperCase()})</Title>
+                        <TextArea
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder={`请输入${inputFormat.toUpperCase()}格式的内容...`}
+                            rows={8}
+                        />
+                    </div>
+
+                    {/* 操作按钮区域 */}
+                    <Space>
+                        <Button type="primary" onClick={handleConvert} icon={<SwapOutlined />}>
+                            转换格式
+                        </Button>
+                        <Button onClick={handleFormat} icon={<CodeOutlined />}>
+                            格式化
+                        </Button>
+                        <Button onClick={handleMinify} icon={<DeleteOutlined />}>
+                            压缩
+                        </Button>
+                        <Button onClick={handleValidate}>
+                            验证格式
+                        </Button>
+                        <Button onClick={handleClear}>
+                            清空
+                        </Button>
+                        <div style={{ marginLeft: 'auto' }}>
+                            <span style={{ marginRight: '8px' }}>缩进大小：</span>
+                            <Select
+                                value={indentSize}
+                                onChange={setIndentSize}
+                                style={{ width: 80 }}
+                            >
+                                <Option value={2}>2 空格</Option>
+                                <Option value={4}>4 空格</Option>
+                                <Option value={8}>8 空格</Option>
+                                <Option value={0}>无缩进</Option>
+                            </Select>
+                        </div>
+                    </Space>
+
+                    {/* 输出区域 */}
+                    <div>
+                        <Title level={4}>输出结果 ({outputFormat.toUpperCase()})</Title>
+                        <TextArea
+                            value={output}
+                            readOnly
+                            rows={8}
+                            style={{ backgroundColor: '#f5f5f5' }}
+                        />
+                        <Space style={{ marginTop: '8px' }}>
+                            <Button
+                                icon={<CopyOutlined />}
+                                onClick={() => handleCopy(output)}
+                                disabled={!output}
+                            >
+                                复制结果
+                            </Button>
+                            <Button
+                                onClick={handleCopyToInput}
+                                disabled={!output}
+                            >
+                                复制到输入
+                            </Button>
+                        </Space>
+                    </div>
+                </Space>
+            </Card>), // 对应旧的 Tabs.TabPane 内部的内容
+        },
+        {
+            key: 'examples',
+            label: '使用示例',
+            children: (<Card title="常见格式示例">
+                <Tabs defaultActiveKey="json">
+                    <TabPane tab="JSON 示例" key="json">
+                        <Alert
+                            message="JSON 格式示例"
+                            description={
+                                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                                    {`{
+  "name": "example-app",
+  "version": "1.0.0",
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "myapp"
+  },
+  "features": ["auth", "logging", "cache"]
+}`}
+                                </pre>
+                            }
+                            type="info"
+                        />
+                    </TabPane>
+
+                    <TabPane tab="YAML 示例" key="yaml">
+                        <Alert
+                            message="YAML 格式示例"
+                            description={
+                                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                                    {`name: example-app
+version: 1.0.0
+database:
+  host: localhost
+  port: 5432
+  name: myapp
+features:
+  - auth
+  - logging
+  - cache`}
+                                </pre>
+                            }
+                            type="info"
+                        />
+                    </TabPane>
+
+                    <TabPane tab="CSV 示例" key="csv">
+                        <Alert
+                            message="CSV 格式示例"
+                            description={
+                                <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                                    {`name,age,city
+Alice,25,New York
+Bob,30,London
+Charlie,35,Tokyo`}
+                                </pre>
+                            }
+                            type="info"
+                        />
+                    </TabPane>
+                </Tabs>
+            </Card>),
+        }
+    ];
+
     return (
         <div style={{ padding: '24px' }}>
             <Title level={2}>
@@ -265,179 +445,7 @@ export default function ConfigFormatter() {
                 支持JSON、YAML、XML、TOML、CSV等多种配置格式的转换、格式化和验证
             </Paragraph>
 
-            <Tabs activeKey={activeTab} onChange={setActiveTab}>
-                <TabPane tab="格式转换" key="converter">
-                    <Card title="配置格式转换" style={{ marginBottom: '16px' }}>
-                        <Space direction="vertical" style={{ width: '100%' }} size="large">
-                            {/* 格式选择 */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                                <span>输入格式:</span>
-                                <Select
-                                    value={inputFormat}
-                                    onChange={setInputFormat}
-                                    style={{ width: 120 }}
-                                >
-                                    <Option value="json">JSON</Option>
-                                    <Option value="yaml">YAML</Option>
-                                    <Option value="xml">XML</Option>
-                                    <Option value="toml">TOML</Option>
-                                    <Option value="csv">CSV</Option>
-                                </Select>
-
-                                <SwapOutlined onClick={handleSwap} style={{ cursor: 'pointer', fontSize: '16px' }} />
-
-                                <span>输出格式:</span>
-                                <Select
-                                    value={outputFormat}
-                                    onChange={setOutputFormat}
-                                    style={{ width: 120 }}
-                                >
-                                    <Option value="json">JSON</Option>
-                                    <Option value="yaml">YAML</Option>
-                                    <Option value="xml">XML</Option>
-                                    <Option value="toml">TOML</Option>
-                                    <Option value="csv">CSV</Option>
-                                </Select>
-
-                                <Button onClick={handleAutoDetect} size="small">
-                                    自动检测
-                                </Button>
-                            </div>
-
-                            {/* 输入区域 */}
-                            <div>
-                                <Title level={4}>输入内容 ({inputFormat.toUpperCase()})</Title>
-                                <TextArea
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    placeholder={`请输入${inputFormat.toUpperCase()}格式的内容...`}
-                                    rows={8}
-                                />
-                            </div>
-
-                            {/* 操作按钮区域 */}
-                            <Space>
-                                <Button type="primary" onClick={handleConvert} icon={<SwapOutlined />}>
-                                    转换格式
-                                </Button>
-                                <Button onClick={handleFormat} icon={<CodeOutlined />}>
-                                    格式化
-                                </Button>
-                                <Button onClick={handleMinify} icon={<DeleteOutlined />}>
-                                    压缩
-                                </Button>
-                                <Button onClick={handleValidate}>
-                                    验证格式
-                                </Button>
-                                <Button onClick={handleClear}>
-                                    清空
-                                </Button>
-                                <div style={{ marginLeft: 'auto' }}>
-                                    <span style={{ marginRight: '8px' }}>缩进大小：</span>
-                                    <Select
-                                        value={indentSize}
-                                        onChange={setIndentSize}
-                                        style={{ width: 80 }}
-                                    >
-                                        <Option value={2}>2 空格</Option>
-                                        <Option value={4}>4 空格</Option>
-                                        <Option value={8}>8 空格</Option>
-                                        <Option value={0}>无缩进</Option>
-                                    </Select>
-                                </div>
-                            </Space>
-
-                            {/* 输出区域 */}
-                            <div>
-                                <Title level={4}>输出结果 ({outputFormat.toUpperCase()})</Title>
-                                <TextArea
-                                    value={output}
-                                    readOnly
-                                    rows={8}
-                                    style={{ backgroundColor: '#f5f5f5' }}
-                                />
-                                <Space style={{ marginTop: '8px' }}>
-                                    <Button
-                                        icon={<CopyOutlined />}
-                                        onClick={() => handleCopy(output)}
-                                        disabled={!output}
-                                    >
-                                        复制结果
-                                    </Button>
-                                    <Button
-                                        onClick={handleCopyToInput}
-                                        disabled={!output}
-                                    >
-                                        复制到输入
-                                    </Button>
-                                </Space>
-                            </div>
-                        </Space>
-                    </Card>
-                </TabPane>
-
-                <TabPane tab="使用示例" key="examples">
-                    <Card title="常见格式示例">
-                        <Tabs defaultActiveKey="json">
-                            <TabPane tab="JSON 示例" key="json">
-                                <Alert
-                                    message="JSON 格式示例"
-                                    description={
-                                        <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
-                                            {`{
-  "name": "example-app",
-  "version": "1.0.0",
-  "database": {
-    "host": "localhost",
-    "port": 5432,
-    "name": "myapp"
-  },
-  "features": ["auth", "logging", "cache"]
-}`}
-                                        </pre>
-                                    }
-                                    type="info"
-                                />
-                            </TabPane>
-
-                            <TabPane tab="YAML 示例" key="yaml">
-                                <Alert
-                                    message="YAML 格式示例"
-                                    description={
-                                        <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
-                                            {`name: example-app
-version: 1.0.0
-database:
-  host: localhost
-  port: 5432
-  name: myapp
-features:
-  - auth
-  - logging
-  - cache`}
-                                        </pre>
-                                    }
-                                    type="info"
-                                />
-                            </TabPane>
-
-                            <TabPane tab="CSV 示例" key="csv">
-                                <Alert
-                                    message="CSV 格式示例"
-                                    description={
-                                        <pre style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
-                                            {`name,age,city
-Alice,25,New York
-Bob,30,London
-Charlie,35,Tokyo`}
-                                        </pre>
-                                    }
-                                    type="info"
-                                />
-                            </TabPane>
-                        </Tabs>
-                    </Card>
-                </TabPane>
+            <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems}>
             </Tabs>
         </div>
     );
