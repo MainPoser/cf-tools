@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { Card, Input, Button, Typography, Space, message } from 'antd';
 import { CopyOutlined, SwapOutlined } from '@ant-design/icons';
+import { useAutoTrackVisit } from '../../hooks/useAnalytics';
 
 const { TextArea } = Input;
 const { Title, Paragraph } = Typography;
 
 export default function Base64Tool() {
+    // 自动统计页面访问
+    useAutoTrackVisit('Base64编解码');
+
     const [input, setInput] = useState('');
     const [output, setOutput] = useState('');
     const [isEncode, setIsEncode] = useState(true);

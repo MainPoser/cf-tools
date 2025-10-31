@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { Card, Input, Button, Typography, Space, message, Select } from 'antd';
 import { CopyOutlined, CodeOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useAutoTrackVisit } from '../../hooks/useAnalytics';
 
 const { TextArea } = Input;
 const { Title, Paragraph } = Typography;
 const { Option } = Select;
 
 export default function JsonFormatter() {
+    // 自动统计页面访问
+    useAutoTrackVisit('JSON格式化');
+
     const [input, setInput] = useState('');
     const [output, setOutput] = useState('');
     const [indentSize, setIndentSize] = useState(2);

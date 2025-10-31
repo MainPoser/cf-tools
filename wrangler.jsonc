@@ -14,6 +14,18 @@
 	"observability": {
 		"enabled": true
 	},
+	/**
+	 * KV Namespace for Analytics
+	 * 用于存储访问统计数据
+	 * 需要先创建KV命名空间: wrangler kv:namespace create "ANALYTICS"
+	 */
+	"kv_namespaces": [
+		{
+			"binding": "ANALYTICS",
+			"id": "867c654ae1864ffc8e2ad5be758195d5",
+			"preview_id": "867c654ae1864ffc8e2ad5be758195d5"
+		}
+	],
 	// "durable_objects": {
 	// 	"bindings": [
 	// 		{
