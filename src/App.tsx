@@ -13,6 +13,7 @@ import Timestamp from './pages/tools/Timestamp';
 import QRCodeGenerator from './pages/tools/QRCodeGenerator';
 import ColorPicker from './pages/tools/ColorPicker';
 import Markdown from './pages/tools/Markdown';
+import PasswordGenerator from './pages/tools/PasswordGenerator';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
            <Route path="/tools/qr-code-generator" element={<QRCodeGenerator />} />
            <Route path="/tools/color-picker" element={<ColorPicker />} />
            <Route path="/tools/markdown" element={<Markdown />} />
+           <Route path="/tools/password-generator" element={<PasswordGenerator />} />
           {/* 可选: 404 页面 */}
           <Route path="*" element={<h2>404 Not Found</h2>} />
         </Routes>

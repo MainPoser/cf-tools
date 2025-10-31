@@ -32,7 +32,7 @@ const items = [
             { key: '/tools/qr-code-generator', icon: <QrcodeOutlined />, label: <Link to="/tools/qr-code-generator">二维码生成</Link> },
             { key: '/tools/color-picker', icon: <BgColorsOutlined />, label: <Link to="/tools/color-picker">颜色选择器</Link> },
             { key: '/tools/markdown', icon: <FileTextOutlined />, label: <Link to="/tools/markdown">Markdown预览</Link> },
-            { key: '/tools/password', icon: <LockOutlined />, label: <Link to="/tools/password">密码生成器</Link> },
+            { key: '/tools/password-generator', icon: <LockOutlined />, label: <Link to="/tools/password-generator">密码生成器</Link> },
         ]
     },
     { key: '/about', icon: <PictureOutlined />, label: <Link to="/about">关于</Link> },

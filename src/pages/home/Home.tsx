@@ -76,8 +76,8 @@ function Home() {
             title: '密码生成器',
             description: '生成安全的随机密码',
             icon: <LockOutlined style={{ fontSize: '24px', color: '#f5222d' }} />,
-            path: '/tools/password',
-            available: false
+            path: '/tools/password-generator',
+            available: true
         }
     ];
 
