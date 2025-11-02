@@ -14,7 +14,7 @@ export interface ClouldFlareEnv {
 
 
 export default {
-  async fetch(request,env:ClouldFlareEnv) {
+  async fetch(request, env: ClouldFlareEnv) {
     const url = new URL(request.url);
 
     const corsHeaders = {
@@ -76,20 +76,23 @@ export default {
       // 获取访问统计
       if (url.pathname === "/api/analytics/stats" && request.method === 'GET') {
         const toolName = url.searchParams.get('tool');
-
+        const today = new Date().toISOString().split('T')[0];
         if (toolName) {
+          let analytics: AnalyticsData = {
+            totalVisits: 0,
+            todayVisits: 0,
+            lastResetDate: new Date().toISOString().split('T')[0]
+          };
           // 获取特定工具的统计
           const data = await env.ANALYTICS.get(toolName);
           if (data) {
-            const analytics: AnalyticsData = JSON.parse(data);
-            return Response.json(analytics, { headers: corsHeaders });
-          } else {
-            return Response.json({
-              totalVisits: 0,
-              todayVisits: 0,
-              lastResetDate: new Date().toISOString().split('T')[0]
-            }, { headers: corsHeaders });
+            analytics = JSON.parse(data);
           }
+          if (analytics.lastResetDate !== today) {
+            analytics.todayVisits = 0;
+            analytics.lastResetDate = today;
+          }
+          return Response.json(analytics, { headers: corsHeaders });
         } else {
           // 获取所有工具的统计
           const keys = await env.ANALYTICS.list();
@@ -104,7 +107,7 @@ export default {
 
           // 计算网站总访问量
           const totalSiteVisits = Object.values(allStats).reduce((sum, stats) => sum + stats.totalVisits, 0);
-          const todaySiteVisits = Object.values(allStats).reduce((sum, stats) => sum + stats.todayVisits, 0);
+          const todaySiteVisits = Object.values(allStats).reduce((sum, stats) => sum + (stats.lastResetDate === today ? stats.todayVisits : 0), 0);
 
           return Response.json({
             tools: allStats,
