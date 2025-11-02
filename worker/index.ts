@@ -102,12 +102,16 @@ export default {
             const data = await env.ANALYTICS.get(key.name);
             if (data) {
               allStats[key.name] = JSON.parse(data);
+              if (allStats[key.name].lastResetDate !== today) {
+                allStats[key.name].todayVisits = 0;
+                allStats[key.name].lastResetDate = today;
+              }
             }
           }
 
           // 计算网站总访问量
           const totalSiteVisits = Object.values(allStats).reduce((sum, stats) => sum + stats.totalVisits, 0);
-          const todaySiteVisits = Object.values(allStats).reduce((sum, stats) => sum + (stats.lastResetDate === today ? stats.todayVisits : 0), 0);
+          const todaySiteVisits = Object.values(allStats).reduce((sum, stats) => sum + stats.todayVisits, 0);
 
           return Response.json({
             tools: allStats,
