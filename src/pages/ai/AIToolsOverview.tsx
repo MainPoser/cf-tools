@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Card, Row, Col, Typography, Button, Space, message, Alert, Progress, Input } from 'antd';
+import { Card, Row, Col, Typography, Button, Space, message, Alert, Progress, Input, Tooltip } from 'antd';
 import {
     RobotOutlined,
     FileTextOutlined,
     PictureOutlined,
     TranslationOutlined,
     ApiOutlined,
-    BarChartOutlined
+    BarChartOutlined,
+    QuestionCircleOutlined
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { useAutoTrackVisit } from '../../hooks/useAnalytics';
@@ -167,7 +168,24 @@ export default function AIToolsOverview() {
             <Card title="API 配置" style={{ marginBottom: '24px' }}>
                 <Row gutter={16}>
                     <Col span={8}>
-                        <Title level={4}>账户 ID</Title>
+                        <Title level={4}>
+                            账户 ID
+                            <Tooltip
+                                title={
+                                    <div>
+                                        <p><strong>获取账户ID的方法：</strong></p>
+                                        <p>1. 登录 <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer">Cloudflare Dashboard</a></p>
+                                        <p>2. 左上角切换用户</p>
+                                        <p>3. 浏览器https://dash.cloudflare.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/home/domains中的xxxx部分</p>
+                                        <p>4. 账户ID格式通常是：32位十六进制字符串</p>
+                                    </div>
+                                }
+                                placement="topLeft"
+                                overlayStyle={{ maxWidth: '400px' }}
+                            >
+                                <QuestionCircleOutlined style={{ marginLeft: '8px', color: '#1890ff', cursor: 'help' }} />
+                            </Tooltip>
+                        </Title>
                         <Input
                             value={accountId}
                             onChange={(e) => setAccountId(e.target.value)}
@@ -175,7 +193,29 @@ export default function AIToolsOverview() {
                         />
                     </Col>
                     <Col span={8}>
-                        <Title level={4}>API Token</Title>
+                        <Title level={4}>
+                            API Token
+                            <Tooltip
+                                title={
+                                    <div>
+                                        <p><strong>获取API Token的方法：</strong></p>
+                                        <p>1. 登录 <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer">Cloudflare Dashboard</a></p>
+                                        <p>2. 进入"我的个人资料" → "API 令牌"</p>
+                                        <p>3. 点击"创建令牌" → "自定义令牌"</p>
+                                        <p>4. 配置权限：</p>
+                                        <p>   • 账户：Cloudflare Workers AI:Edit</p>
+                                        <p>   • 账户：Account Analytics:Read</p>
+                                        <p>   • 区域资源：包含所有区域</p>
+                                        <p>5. 点击"继续以显示摘要" → "创建令牌"</p>
+                                        <p>6. 复制生成的API Token（注意：令牌只显示一次）</p>
+                                    </div>
+                                }
+                                placement="topLeft"
+                                overlayStyle={{ maxWidth: '450px' }}
+                            >
+                                <QuestionCircleOutlined style={{ marginLeft: '8px', color: '#1890ff', cursor: 'help' }} />
+                            </Tooltip>
+                        </Title>
                         <Input.Password
                             value={apiKey}
                             onChange={(e) => setApiKey(e.target.value)}
@@ -183,7 +223,7 @@ export default function AIToolsOverview() {
                         />
                     </Col>
                     <Col span={8}>
-                        <Title level={4}>&nbsp;</Title>
+                        <Title level={4}> </Title>
                         <Space>
                             <Button type="primary" onClick={saveConfig} icon={<ApiOutlined />}>
                                 保存配置
@@ -223,7 +263,7 @@ export default function AIToolsOverview() {
                         <Card
                             hoverable
                             style={{ height: '100%' }}
-                            bodyStyle={{ padding: '24px' }}
+                            styles={{ body: { padding: '24px' } }}
                         >
                             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                                 {tool.icon}
