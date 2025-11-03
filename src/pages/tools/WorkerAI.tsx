@@ -158,7 +158,7 @@ export default function WorkerAI() {
             };
 
             // 发送总神经元查询
-            const totalResponse = await fetch('/api/proxies/clouldflare/client/v4/graphql', {
+            const totalResponse = await fetch('/api/proxies/cloudflare/client/v4/graphql', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
@@ -168,7 +168,7 @@ export default function WorkerAI() {
             });
 
             // 发送模型使用查询
-            const modelResponse = await fetch('/api/proxies/clouldflare/client/v4/graphql', {
+            const modelResponse = await fetch('/api/proxies/cloudflare/client/v4/graphql', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`,
@@ -253,7 +253,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/proxies/clouldflare/client/v4/${accountId}/ai/run/${selectedTextModel}`,
+                `/api/proxies/cloudflare/client/v4/${accountId}/ai/run/${selectedTextModel}`,
                 {
                     method: 'POST',
                     headers: {
@@ -305,7 +305,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/proxies/clouldflare/client/v4/${accountId}/ai/run/${selectedImageModel}`,
+                `/api/proxies/cloudflare/client/v4/${accountId}/ai/run/${selectedImageModel}`,
                 {
                     method: 'POST',
                     headers: {
@@ -355,7 +355,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/proxies/clouldflare/client/v4/${accountId}/ai/run/${AI_MODELS.translation[0].id}`,
+                `/api/proxies/cloudflare/client/v4/${accountId}/ai/run/${AI_MODELS.translation[0].id}`,
                 {
                     method: 'POST',
                     headers: {
