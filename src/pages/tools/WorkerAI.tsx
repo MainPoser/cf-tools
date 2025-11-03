@@ -75,9 +75,6 @@ export default function WorkerAI() {
 
         if (savedApiKey) setApiKey(savedApiKey);
         if (savedAccountId) setAccountId(savedAccountId);
-        if (savedApiKey && savedAccountId) {
-            fetchUsageStats();
-        }
     }, []);
 
     // 配置了API密钥和账户ID后，获取使用统计
