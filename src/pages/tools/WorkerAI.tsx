@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Input, Button, Typography, Space, message, Select, Row, Col, Divider, Alert, Spin, Tabs } from 'antd';
+import { Card, Input, Button, Typography, Space, message, Select, Row, Col, Alert, Tabs } from 'antd';
 import { RobotOutlined, SendOutlined, ClearOutlined, CopyOutlined, ApiOutlined } from '@ant-design/icons';
 import { useAutoTrackVisit } from '../../hooks/useAnalytics';
 
