@@ -123,13 +123,6 @@ export default function WorkerAI() {
                 }
             }
 
-            // 获取所有模型信息（用于显示）
-            const allModelIds = [
-                ...AI_MODELS.text.map(model => model.id),
-                ...AI_MODELS.image.map(model => model.id),
-                ...AI_MODELS.translation.map(model => model.id)
-            ];
-
             const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
 
             // 创建模型统计列表（这里我们显示所有可用模型，但实际使用量是共享的）
