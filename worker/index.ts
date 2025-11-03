@@ -15,20 +15,19 @@ export interface ClouldFlareEnv {
 
 // Cloudflare AI API 代理处理
 async function handleAIProxy(request: Request, url: URL, corsHeaders: Record<string, string>) {
-  const pathParts = url.pathname.split('/');
+  // 预期的路径格式: /api/{account}/ai/run/{modelId}
+  // 直接提取 /api/ 后面的路径部分
+  const apiPath = url.pathname.substring(5); // 移除 "/api/" 前缀
   
-  // 预期的路径格式: /api/ai/run/{modelId}
-  if (pathParts.length < 5 || pathParts[3] !== 'run') {
+  if (!apiPath || !apiPath.startsWith('ai/run/')) {
     return Response.json({ error: 'Invalid AI API path' }, {
       status: 400,
       headers: corsHeaders
     });
   }
-
-  const modelId = pathParts[4];
   
   // 构建 Cloudflare AI API URL
-  const cfApiUrl = `https://api.cloudflare.com/client/v4/accounts/${pathParts[2]}/ai/run/${modelId}`;
+  const cfApiUrl = `https://api.cloudflare.com/client/v4/accounts/${apiPath}`;
   
   try {
     // 获取请求体（如果是 POST 请求）
@@ -88,7 +87,7 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
 
     // 处理CORS预检请求
