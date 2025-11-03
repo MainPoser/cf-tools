@@ -348,7 +348,7 @@ export default function AIImageGeneration() {
             <Card title="图像生成" style={{ marginBottom: '16px' }}>
                 <Space direction="vertical" style={{ width: '100%' }} size="large">
                     <div>
-                        <Title level={4}>图像描述</Title>
+                        <Title level={4}>图像描述<strong style={{ color: '#f5222d' }}>由于模型问题，强烈建议使用英文关键字描述</strong></Title>
                         <TextArea
                             value={imagePrompt}
                             onChange={(e) => setImagePrompt(e.target.value)}
