@@ -9,7 +9,11 @@ import {
     BgColorsOutlined,
     FileTextOutlined,
     LockOutlined,
-    EyeOutlined
+    EyeOutlined,
+    RobotOutlined,
+    EditOutlined,
+    PictureOutlined,
+    TranslationOutlined
 } from '@ant-design/icons';
 import { theme } from 'antd';
 import { useSiteStats } from '../../hooks/useAnalytics';
@@ -77,6 +81,34 @@ function Home() {
             description: '生成安全的随机密码',
             icon: <LockOutlined style={{ fontSize: '24px', color: '#f5222d' }} />,
             path: '/tools/password-generator',
+            available: true
+        },
+        {
+            title: 'AI工具总览',
+            description: '探索各种AI智能工具',
+            icon: <RobotOutlined style={{ fontSize: '24px', color: '#722ed1' }} />,
+            path: '/ai',
+            available: true
+        },
+        {
+            title: 'AI文本生成',
+            description: '智能生成各类文本内容',
+            icon: <EditOutlined style={{ fontSize: '24px', color: '#1890ff' }} />,
+            path: '/ai/text-generation',
+            available: true
+        },
+        {
+            title: 'AI图像生成',
+            description: '基于描述生成精美图像',
+            icon: <PictureOutlined style={{ fontSize: '24px', color: '#52c41a' }} />,
+            path: '/ai/image-generation',
+            available: true
+        },
+        {
+            title: 'AI文本翻译',
+            description: '多语言智能翻译服务',
+            icon: <TranslationOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />,
+            path: '/ai/text-translation',
             available: true
         }
     ];
@@ -177,6 +209,9 @@ function Home() {
                 <Space>
                     <Button type="primary" size="large" onClick={() => navigate('/tools/base64')}>
                         开始使用 Base64 工具
+                    </Button>
+                    <Button type="default" size="large" onClick={() => navigate('/ai')}>
+                        探索 AI 工具
                     </Button>
                     <Button size="large" onClick={() => navigate('/about')}>
                         关于项目
