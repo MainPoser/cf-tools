@@ -80,6 +80,13 @@ export default function WorkerAI() {
         }
     }, []);
 
+    // 配置了API密钥和账户ID后，获取使用统计
+    useEffect(() => {
+        if (apiKey && accountId) {
+            fetchUsageStats();
+        }
+    }, [apiKey, accountId]);
+
     // 保存配置到localStorage
     const saveConfig = () => {
         localStorage.setItem('cf_worker_api_key', apiKey);
