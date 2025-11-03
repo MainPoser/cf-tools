@@ -189,8 +189,8 @@ export default function WorkerAI() {
 
             // 处理总神经元数据
             let totalDailyUsed = 0;
-            if (totalData.data?.viewer?.accounts?.[0]?.data?.sum?.neurons) {
-                totalDailyUsed = totalData.data.viewer.accounts[0].data.sum.neurons;
+            if (totalData.data?.viewer?.accounts?.[0]?.data?.[0]?.sum?.neurons) {
+                totalDailyUsed = totalData.data.viewer.accounts[0].data[0].sum.neurons;
             }
 
             // 处理模型使用数据
