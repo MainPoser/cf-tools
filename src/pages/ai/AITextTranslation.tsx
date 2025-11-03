@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Card, Input, Button, Typography, Space, message, Select, Row, Col, Alert } from 'antd';
-import { SendOutlined, ClearOutlined, CopyOutlined, ApiOutlined } from '@ant-design/icons';
+import { Card, Input, Button, Typography, Space, message, Select, Alert } from 'antd';
+import { SendOutlined, ClearOutlined, CopyOutlined } from '@ant-design/icons';
 import { useAutoTrackVisit } from '../../hooks/useAnalytics';
 
 const { TextArea } = Input;
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 const { Option } = Select;
 
 // 支持的语言列表
@@ -64,16 +64,9 @@ export default function AITextTranslation() {
         }
     }, [apiKey, accountId]);
 
-    const saveConfig = () => {
-        localStorage.setItem('cf_worker_api_key', apiKey);
-        localStorage.setItem('cf_account_id', accountId);
-        message.success('配置已保存');
-    };
-
     // 获取使用统计
     const fetchUsageStats = async () => {
         if (!apiKey || !accountId) {
-            message.warning('请先配置API密钥和账户ID');
             return;
         }
         setLoading(true);
@@ -156,10 +149,8 @@ export default function AITextTranslation() {
             };
 
             setUsageStats(modelStats);
-            message.success('使用统计已更新');
         } catch (error: any) {
             console.error('获取使用统计失败:', error);
-            message.error(`获取使用统计失败: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -182,7 +173,7 @@ export default function AITextTranslation() {
         }
 
         if (!apiKey || !accountId) {
-            message.warning('请先配置API密钥和账户ID');
+            message.warning('请先在AI工具概览页面配置API密钥和账户ID');
             return;
         }
 
@@ -233,83 +224,31 @@ export default function AITextTranslation() {
                 使用先进的AI模型进行高质量的多语言翻译。支持100+种语言互译，准确度高，语境理解强。
             </Paragraph>
 
-            {/* 配置区域 */}
-            <Card title="API 配置" style={{ marginBottom: '16px' }}>
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Title level={4}>账户 ID</Title>
-                        <Input
-                            value={accountId}
-                            onChange={(e) => setAccountId(e.target.value)}
-                            placeholder="请输入 Cloudflare 账户 ID"
-                            style={{ marginBottom: '16px' }}
-                        />
-                    </Col>
-                    <Col span={12}>
-                        <Title level={4}>API Token</Title>
-                        <Input.Password
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
-                            placeholder="请输入 Cloudflare API Token"
-                            style={{ marginBottom: '16px' }}
-                        />
-                    </Col>
-                </Row>
-                <Space>
-                    <Button type="primary" onClick={saveConfig} icon={<ApiOutlined />}>
-                        保存配置
-                    </Button>
-                    <Button onClick={fetchUsageStats}>
-                        查看使用统计
-                    </Button>
-                </Space>
-
-                {usageStats && (
-                    <div style={{ marginTop: '16px' }}>
-                        {/* 翻译模型使用统计 */}
-                        <Card title="翻译模型使用统计" size="small">
-                            <div style={{ marginBottom: '16px' }}>
-                                <Title level={5}>模型信息</Title>
-                                <div style={{
-                                    marginBottom: '8px',
-                                    padding: '8px',
-                                    backgroundColor: '#fafafa',
-                                    borderRadius: '4px',
-                                    border: '1px solid #f0f0f0'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <Text strong>{usageStats.model_name}</Text>
-                                            <br />
-                                            <Text type="secondary" style={{ fontSize: '12px' }}>
-                                                {usageStats.model_id}
-                                            </Text>
-                                        </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <Text type="warning" style={{ fontSize: '12px', display: 'block' }}>
-                                                最近24小时使用: {usageStats.used} 神经元
-                                            </Text>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Alert
-                                style={{ marginTop: '12px' }}
-                                message="使用说明"
-                                description="翻译通常消耗50-200个神经元。所有模型共享每天10,000个神经元的配额。"
-                                type="info"
-                                showIcon
-                            />
-                        </Card>
-                    </div>
-                )}
-            </Card>
+            {/* 配置状态提示 */}
+            {!apiKey || !accountId ? (
+                <Alert
+                    message="需要配置API"
+                    description="请先在AI工具概览页面配置Cloudflare API密钥和账户ID"
+                    type="warning"
+                    showIcon
+                    style={{ marginBottom: '16px' }}
+                />
+            ) : (
+                usageStats && (
+                    <Alert
+                        message={`翻译模型使用统计`}
+                        description={`${TRANSLATION_MODEL.name} - 最近24小时使用: ${usageStats.used} 神经元`}
+                        type="info"
+                        showIcon
+                        style={{ marginBottom: '16px' }}
+                    />
+                )
+            )}
 
             {/* 翻译设置 */}
             <Card title="翻译设置" style={{ marginBottom: '16px' }}>
-                <Row gutter={16}>
-                    <Col span={12}>
+                <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                    <div>
                         <Title level={4}>源语言</Title>
                         <Select
                             value={sourceLang}
@@ -320,8 +259,8 @@ export default function AITextTranslation() {
                                 <Option key={lang.code} value={lang.code}>{lang.name}</Option>
                             ))}
                         </Select>
-                    </Col>
-                    <Col span={12}>
+                    </div>
+                    <div>
                         <Title level={4}>目标语言</Title>
                         <Select
                             value={targetLang}
@@ -332,8 +271,8 @@ export default function AITextTranslation() {
                                 <Option key={lang.code} value={lang.code}>{lang.name}</Option>
                             ))}
                         </Select>
-                    </Col>
-                </Row>
+                    </div>
+                </Space>
             </Card>
 
             {/* 翻译区域 */}
