@@ -19,7 +19,7 @@ async function handleAIProxy(request: Request, url: URL, corsHeaders: Record<str
   // 直接提取 /api/ 后面的路径部分
   const apiPath = url.pathname.substring(5); // 移除 "/api/" 前缀
   
-  if (!apiPath || !apiPath.startsWith('ai/run/')) {
+  if (!apiPath || !apiPath.includes('/')) {
     return Response.json({ error: 'Invalid AI API path' }, {
       status: 400,
       headers: corsHeaders
