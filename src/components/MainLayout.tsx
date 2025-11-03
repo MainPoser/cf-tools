@@ -11,7 +11,9 @@ import {
     BgColorsOutlined,
     FileTextOutlined,
     LockOutlined,
-    RobotOutlined
+    RobotOutlined,
+    TranslationOutlined,
+    EditOutlined
 } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 import './MainLayout.css';
@@ -34,7 +36,17 @@ const items = [
             { key: '/tools/color-picker', icon: <BgColorsOutlined />, label: <Link to="/tools/color-picker">颜色选择器</Link> },
             { key: '/tools/markdown', icon: <FileTextOutlined />, label: <Link to="/tools/markdown">Markdown预览</Link> },
             { key: '/tools/password-generator', icon: <LockOutlined />, label: <Link to="/tools/password-generator">密码生成器</Link> },
-            { key: '/tools/worker-ai', icon: <RobotOutlined />, label: <Link to="/tools/worker-ai">Worker AI</Link> },
+        ]
+    },
+    { 
+        key: '/ai', 
+        icon: <RobotOutlined />, 
+        label: 'AI工具集',
+        children: [
+            { key: '/ai', icon: <RobotOutlined />, label: <Link to="/ai">AI工具总览</Link> },
+            { key: '/ai/text-generation', icon: <EditOutlined />, label: <Link to="/ai/text-generation">AI文本生成</Link> },
+            { key: '/ai/image-generation', icon: <PictureOutlined />, label: <Link to="/ai/image-generation">AI图像生成</Link> },
+            { key: '/ai/text-translation', icon: <TranslationOutlined />, label: <Link to="/ai/text-translation">AI文本翻译</Link> },
         ]
     },
     { key: '/about', icon: <PictureOutlined />, label: <Link to="/about">关于</Link> },

@@ -14,7 +14,12 @@ import QRCodeGenerator from './pages/tools/QRCodeGenerator';
 import ColorPicker from './pages/tools/ColorPicker';
 import Markdown from './pages/tools/Markdown';
 import PasswordGenerator from './pages/tools/PasswordGenerator';
-import WorkerAI from './pages/tools/WorkerAI';
+
+// 导入AI页面
+import AIToolsOverview from './pages/ai/AIToolsOverview';
+import AITextGeneration from './pages/ai/AITextGeneration';
+import AIImageGeneration from './pages/ai/AIImageGeneration';
+import AITextTranslation from './pages/ai/AITextTranslation';
 
 function App() {
   return (
@@ -29,7 +34,7 @@ function App() {
           {/* About 页面路由 */}
           <Route path="/about" element={<About />} />
 
-          {/* 工具页面路由 - 现在只添加Base64 */}
+          {/* 工具页面路由 */}
           <Route path="/tools/base64" element={<Base64Tool />} />
           <Route path="/tools/config-formatter" element={<ConfigFormatter />} />
           <Route path="/tools/url-codec" element={<URLCodec />} />
@@ -38,7 +43,13 @@ function App() {
           <Route path="/tools/color-picker" element={<ColorPicker />} />
           <Route path="/tools/markdown" element={<Markdown />} />
           <Route path="/tools/password-generator" element={<PasswordGenerator />} />
-          <Route path="/tools/worker-ai" element={<WorkerAI />} />
+
+          {/* AI工具页面路由 */}
+          <Route path="/ai" element={<AIToolsOverview />} />
+          <Route path="/ai/text-generation" element={<AITextGeneration />} />
+          <Route path="/ai/image-generation" element={<AIImageGeneration />} />
+          <Route path="/ai/text-translation" element={<AITextTranslation />} />
+
           {/* 可选: 404 页面 */}
           <Route path="*" element={<h2>404 Not Found</h2>} />
         </Routes>
