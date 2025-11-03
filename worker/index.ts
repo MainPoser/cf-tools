@@ -12,14 +12,13 @@ export interface ClouldFlareEnv {
   ANALYTICS: KVNamespace;
 }
 
-
 // Cloudflare AI API 代理处理
 async function handleAIProxy(request: Request, url: URL, corsHeaders: Record<string, string>) {
-  // 预期的路径格式: /api/{account}/ai/run/{modelId}
-  // 直接提取 /api/ 后面的路径部分
-  const apiPath = url.pathname.substring(5); // 移除 "/api/" 前缀
+  // 预期的路径格式: /api/proxies/clouldflare/client/v4
+  // 直接提取 /api/proxies/clouldflare/ 后面的路径部分
+  const apiPath = url.pathname.substring(25); // 移除 "/api/proxies/clouldflare/client/v4/" 前缀
   
-  if (!apiPath || !apiPath.includes('/')) {
+  if (!apiPath) {
     return Response.json({ error: 'Invalid AI API path' }, {
       status: 400,
       headers: corsHeaders
@@ -27,7 +26,7 @@ async function handleAIProxy(request: Request, url: URL, corsHeaders: Record<str
   }
   
   // 构建 Cloudflare AI API URL
-  const cfApiUrl = `https://api.cloudflare.com/client/v4/accounts/${apiPath}`;
+  const cfApiUrl = `https://api.cloudflare.com/${apiPath}`;
   
   try {
     // 获取请求体（如果是 POST 请求）
@@ -104,7 +103,8 @@ export default {
       }
 
       // Cloudflare AI API 代理
-      if (url.pathname.startsWith('/api/') && url.pathname.includes('/ai/run/')) {
+      // 预期的路径格式: /api/proxies/cloudflare/client/v4/{account}/ai/run/{modelId}
+      if (url.pathname.startsWith('/api/proxies/cloudflare')) {
         return handleAIProxy(request, url, corsHeaders);
       }
 

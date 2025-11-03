@@ -92,44 +92,132 @@ export default function WorkerAI() {
         }
         setLoading(true);
         try {
-            // Cloudflare AI API 是共享配额，我们只需要查询一次总体使用情况
-            // 使用任意一个模型来查询总体统计
-            const response = await fetch(
-                `/api/${accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct/stats`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
+            // 获取今天的日期
+            const today = new Date().toISOString().split('T')[0];
+            
+            // 1. 查询总消耗神经元
+            const totalNeuronsQuery = {
+                operationName: "GetAIInferencesTotalNeurons",
+                variables: {
+                    accountTag: accountId,
+                    dateStart: today,
+                    dateEnd: today
+                },
+                query: `query GetAIInferencesTotalNeurons($accountTag: string, $filter: filter) {
+                    viewer {
+                        accounts(filter: {accountTag: $accountTag}) {
+                            data: aiInferenceAdaptiveGroups(filter: {date_geq: $dateStart, date_leq: $dateEnd}, limit: 1) {
+                                sum {
+                                    neurons: totalNeurons
+                                    __typename
+                                }
+                                __typename
+                            }
+                            __typename
+                        }
+                        __typename
+                    }
+                }`
+            };
 
-            let totalDailyUsed = 0;
-            let totalDailyLimit = 10000; // Cloudflare 免费配额是每天10000个神经元
-            let totalRemaining = totalDailyLimit;
+            // 2. 查询所有模型的使用情况
+            const allModelIds = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation].map(model => model.id);
+            
+            const modelUsageQuery = {
+                operationName: "GetAIInferencesCostsGroupByModelsOverTime",
+                variables: {
+                    accountTag: accountId,
+                    datetimeStart: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 24小时前
+                    datetimeEnd: new Date().toISOString(),
+                    modelIds: allModelIds
+                },
+                query: `query GetAIInferencesCostsGroupByModelsOverTime($accountTag: string!, $datetimeStart: Time, $datetimeEnd: Time, $modelIds: [string]) {
+                    viewer {
+                        accounts(filter: {accountTag: $accountTag}) {
+                            aiInferenceAdaptiveGroups(filter: {datetime_geq: $datetimeStart, datetime_leq: $datetimeEnd, modelId_in: $modelIds, neurons_geq: 0, costMetricValue1_geq: 0, costMetricValue2_geq: 0}, orderBy: [datetimeFifteenMinutes_ASC], limit: 10000) {
+                                sum {
+                                    totalCostMetricValue1
+                                    totalCostMetricValue2
+                                    totalNeurons
+                                    __typename
+                                }
+                                dimensions {
+                                    datetimeFifteenMinutes
+                                    modelId
+                                    costMetricName1
+                                    costMetricName2
+                                    __typename
+                                }
+                                __typename
+                            }
+                            __typename
+                        }
+                        __typename
+                    }
+                }`
+            };
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log('API响应:', data);
+            // 发送总神经元查询
+            const totalResponse = await fetch('/api/proxies/clouldflare/client/v4/graphql', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(totalNeuronsQuery)
+            });
 
-                // 根据实际API响应格式获取使用数据
-                if (data.result && data.result.usage) {
-                    totalDailyUsed = data.result.usage.daily_used || 0;
-                    totalRemaining = data.result.usage.remaining || (totalDailyLimit - totalDailyUsed);
-                } else if (data.result && data.result.result && data.result.result.usage) {
-                    // 处理可能的嵌套结构
-                    totalDailyUsed = data.result.result.usage.daily_used || 0;
-                    totalRemaining = data.result.result.usage.remaining || (totalDailyLimit - totalDailyUsed);
-                }
+            // 发送模型使用查询
+            const modelResponse = await fetch('/api/proxies/clouldflare/client/v4/graphql', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(modelUsageQuery)
+            });
+
+            if (!totalResponse.ok || !modelResponse.ok) {
+                throw new Error('GraphQL请求失败');
             }
 
-            const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
+            const totalData = await totalResponse.json();
+            const modelData = await modelResponse.json();
 
-            // 创建模型统计列表（这里我们显示所有可用模型，但实际使用量是共享的）
+            console.log('总神经元响应:', totalData);
+            console.log('模型使用响应:', modelData);
+
+            // 处理总神经元数据
+            let totalDailyUsed = 0;
+            if (totalData.data?.viewer?.accounts?.[0]?.data?.sum?.neurons) {
+                totalDailyUsed = totalData.data.viewer.accounts[0].data.sum.neurons;
+            }
+
+            // 处理模型使用数据
+            const modelUsageMap = new Map<string, number>();
+            if (modelData.data?.viewer?.accounts?.[0]?.aiInferenceAdaptiveGroups) {
+                const groups = modelData.data.viewer.accounts[0].aiInferenceAdaptiveGroups;
+                
+                // 按模型汇总使用量
+                groups.forEach((group: any) => {
+                    const modelId = group.dimensions?.modelId;
+                    const neurons = group.sum?.totalNeurons || 0;
+                    
+                    if (modelId && neurons > 0) {
+                        modelUsageMap.set(modelId, (modelUsageMap.get(modelId) || 0) + neurons);
+                    }
+                });
+            }
+
+            const totalDailyLimit = 10000; // Cloudflare 免费配额是每天10000个神经元
+            const totalRemaining = Math.max(0, totalDailyLimit - totalDailyUsed);
+
+            // 创建模型统计列表
+            const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
             const modelStats: ModelUsageStats[] = allModels.map(model => ({
                 model_id: model.id,
                 model_name: model.name,
-                used: 0, // 单个模型的使用量需要从其他API获取，这里暂时设为0
+                used: modelUsageMap.get(model.id) || 0,
                 last_used: new Date().toISOString()
             }));
 
@@ -142,9 +230,9 @@ export default function WorkerAI() {
             });
 
             message.success('使用统计已更新');
-        } catch (error) {
+        } catch (error: any) {
             console.error('获取使用统计失败:', error);
-            message.error('获取使用统计失败');
+            message.error(`获取使用统计失败: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -165,7 +253,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/${accountId}/ai/run/${selectedTextModel}`,
+                `/api/proxies/clouldflare/client/v4/${accountId}/ai/run/${selectedTextModel}`,
                 {
                     method: 'POST',
                     headers: {
@@ -217,7 +305,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/${accountId}/ai/run/${selectedImageModel}`,
+                `/api/proxies/clouldflare/client/v4/${accountId}/ai/run/${selectedImageModel}`,
                 {
                     method: 'POST',
                     headers: {
@@ -267,7 +355,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/${accountId}/ai/run/${AI_MODELS.translation[0].id}`,
+                `/api/proxies/clouldflare/client/v4/${accountId}/ai/run/${AI_MODELS.translation[0].id}`,
                 {
                     method: 'POST',
                     headers: {
@@ -719,6 +807,7 @@ export default function WorkerAI() {
                         <ul>
                             <li>需要在 Cloudflare 控制台创建 API Token</li>
                             <li>API Token 需要包含 Worker AI 权限</li>
+                            <li>API Token 需要包含 账户 账户分析 读取 权限</li>
                             <li>账户 ID 可以在 Cloudflare 控制台右侧边栏找到</li>
                             <li>配置信息会保存在本地浏览器中</li>
                         </ul>
