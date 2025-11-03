@@ -224,11 +224,21 @@ export default function WorkerAI() {
                 last_used: new Date().toISOString()
             }));
 
+            // 计算下一个UTC 00:00重置时间，并转换为客户端时区
+            const now = new Date();
+            const nowUtc = new Date(now.toISOString()); // 当前UTC时间
+            const tomorrowUtc = new Date(nowUtc);
+            tomorrowUtc.setUTCDate(tomorrowUtc.getUTCDate() + 1);
+            tomorrowUtc.setUTCHours(0, 0, 0, 0); // 设置为明天UTC 00:00:00
+
+            // 将UTC时间转换为客户端本地时间字符串
+            const resetTimeLocal = tomorrowUtc.toLocaleString();
+
             setUsageStats({
                 total_daily_used: totalDailyUsed,
                 total_daily_limit: totalDailyLimit,
                 total_remaining: totalRemaining,
-                reset_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString(),
+                reset_time: resetTimeLocal,
                 models: modelStats
             });
 
