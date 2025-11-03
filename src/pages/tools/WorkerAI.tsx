@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Input, Button, Typography, Space, message, Select,Divider, Row, Col, Alert, Tabs } from 'antd';
+import { Card, Input, Button, Typography, Space, message, Select, Divider, Row, Col, Alert, Tabs } from 'antd';
 import { RobotOutlined, SendOutlined, ClearOutlined, CopyOutlined, ApiOutlined } from '@ant-design/icons';
 import { useAutoTrackVisit } from '../../hooks/useAnalytics';
 
@@ -75,6 +75,9 @@ export default function WorkerAI() {
 
         if (savedApiKey) setApiKey(savedApiKey);
         if (savedAccountId) setAccountId(savedAccountId);
+        if (savedApiKey && savedAccountId) {
+            fetchUsageStats();
+        }
     }, []);
 
     // 保存配置到localStorage
@@ -94,7 +97,7 @@ export default function WorkerAI() {
         try {
             // 获取今天的日期
             const today = new Date().toISOString().split('T')[0];
-            
+
             // 1. 查询总消耗神经元
             const totalNeuronsQuery = {
                 operationName: "GetAIInferencesTotalNeurons",
@@ -122,7 +125,7 @@ export default function WorkerAI() {
 
             // 2. 查询所有模型的使用情况
             const allModelIds = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation].map(model => model.id);
-            
+
             const modelUsageQuery = {
                 operationName: "GetAIInferencesCostsGroupByModelsOverTime",
                 variables: {
@@ -197,12 +200,12 @@ export default function WorkerAI() {
             const modelUsageMap = new Map<string, number>();
             if (modelData.data?.viewer?.accounts?.[0]?.aiInferenceAdaptiveGroups) {
                 const groups = modelData.data.viewer.accounts[0].aiInferenceAdaptiveGroups;
-                
+
                 // 按模型汇总使用量
                 groups.forEach((group: any) => {
                     const modelId = group.dimensions?.modelId;
                     const neurons = group.sum?.totalNeurons || 0;
-                    
+
                     if (modelId && neurons > 0) {
                         modelUsageMap.set(modelId, (modelUsageMap.get(modelId) || 0) + neurons);
                     }
@@ -776,6 +779,9 @@ export default function WorkerAI() {
                                                 <Text type="secondary" style={{ fontSize: '12px' }}>
                                                     共享配额
                                                 </Text>
+                                                <Text type="warning" style={{ fontSize: '12px' }}>
+                                                    最近24小时使用: {model.used} 神经元
+                                                </Text>
                                             </div>
                                         </div>
                                     </div>
@@ -805,9 +811,9 @@ export default function WorkerAI() {
                     <div>
                         <Title level={5}>配置说明：</Title>
                         <ul>
-                            <li>需要在 Cloudflare 控制台创建 API Token</li>
-                            <li>API Token 需要包含 Worker AI 权限</li>
-                            <li>API Token 需要包含 账户 账户分析 读取 权限</li>
+                            <li><strong>需要在 Cloudflare 控制台创建 API Token</strong></li>
+                            <li>API Token 需要包含 <strong>Worker AI</strong> 权限</li>
+                            <li>API Token 需要包含 <strong>账户 账户分析 读取</strong> 权限</li>
                             <li>账户 ID 可以在 Cloudflare 控制台右侧边栏找到</li>
                             <li>配置信息会保存在本地浏览器中</li>
                         </ul>
@@ -815,7 +821,7 @@ export default function WorkerAI() {
                     <div>
                         <Title level={5}>使用限制：</Title>
                         <ul>
-                            <li>所有模型<strong>共享</strong>每天免费提供的 10,000 个神经元配额</li>
+                            <li>所有模型<strong>共享</strong>每天免费提供的 <strong>10,000</strong> 个神经元配额</li>
                             <li>不同模型消耗的神经元数量不同：
                                 <ul>
                                     <li>文本生成模型：每次请求约消耗100-500个神经元</li>
@@ -824,6 +830,7 @@ export default function WorkerAI() {
                                 </ul>
                             </li>
                             <li>超过限制后需要等待第二天重置或升级账户</li>
+                            <li>统计可能会存在延迟，建议在使用后查看统计信息，确保不超过配额</li>
                             <li>建议合理使用，避免浪费配额</li>
                         </ul>
                     </div>
