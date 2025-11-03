@@ -9,11 +9,12 @@ import About from './pages/about/About';
 import Base64Tool from './pages/tools/Base64Tool';
 import ConfigFormatter from './pages/tools/ConfigFormatter';
 import URLCodec from './pages/tools/URLCodec';
-import Timestamp from './pages/tools/Timestamp';  
+import Timestamp from './pages/tools/Timestamp';
 import QRCodeGenerator from './pages/tools/QRCodeGenerator';
 import ColorPicker from './pages/tools/ColorPicker';
 import Markdown from './pages/tools/Markdown';
 import PasswordGenerator from './pages/tools/PasswordGenerator';
+import WorkerAI from './pages/tools/WorkerAI';
 
 function App() {
   return (
@@ -33,10 +34,11 @@ function App() {
           <Route path="/tools/config-formatter" element={<ConfigFormatter />} />
           <Route path="/tools/url-codec" element={<URLCodec />} />
           <Route path="/tools/timestamp" element={<Timestamp />} />
-           <Route path="/tools/qr-code-generator" element={<QRCodeGenerator />} />
-           <Route path="/tools/color-picker" element={<ColorPicker />} />
-           <Route path="/tools/markdown" element={<Markdown />} />
-           <Route path="/tools/password-generator" element={<PasswordGenerator />} />
+          <Route path="/tools/qr-code-generator" element={<QRCodeGenerator />} />
+          <Route path="/tools/color-picker" element={<ColorPicker />} />
+          <Route path="/tools/markdown" element={<Markdown />} />
+          <Route path="/tools/password-generator" element={<PasswordGenerator />} />
+          <Route path="/tools/worker-ai" element={<WorkerAI />} />
           {/* 可选: 404 页面 */}
           <Route path="*" element={<h2>404 Not Found</h2>} />
         </Routes>

@@ -1,0 +1,635 @@
+import { useState, useEffect } from 'react';
+import { Card, Input, Button, Typography, Space, message, Select, Row, Col, Divider, Alert, Spin, Tabs } from 'antd';
+import { RobotOutlined, SendOutlined, ClearOutlined, CopyOutlined, ApiOutlined } from '@ant-design/icons';
+import { useAutoTrackVisit } from '../../hooks/useAnalytics';
+
+const { TextArea } = Input;
+const { Title, Paragraph, Text } = Typography;
+const { Option } = Select;
+
+// Cloudflare Worker AI 模型配置
+const AI_MODELS = {
+    text: [
+        { id: '@cf/meta/llama-3.1-8b-instruct', name: 'LLaMA 3.1 8B Instruct', description: '通用对话模型，适合各种文本生成任务' },
+        { id: '@cf/mistral/mistral-7b-instruct-v0.2', name: 'Mistral 7B Instruct', description: '轻量级对话模型，响应速度快' },
+        { id: '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b', name: 'DeepSeek R1 Distill Qwen 32B', description: '高性能模型，适合复杂推理任务' },
+    ],
+    image: [
+        { id: '@cf/stabilityai/stable-diffusion-xl-base-1.0', name: 'Stable Diffusion XL', description: '高质量图像生成模型' },
+        { id: '@cf/bytedance/stable-diffusion-xl-lightning', name: 'SDXL Lightning', description: '快速图像生成模型' },
+    ],
+    translation: [
+        { id: '@cf/meta/m2m100-1.2b', name: 'M2M100 1.2B', description: '多语言翻译模型，支持100+语言' },
+    ]
+};
+
+interface UsageStats {
+    daily_used: number;
+    daily_limit: number;
+    remaining: number;
+    reset_time: string;
+}
+
+export default function WorkerAI() {
+    // 自动统计页面访问
+    useAutoTrackVisit('Cloudflare Worker AI');
+
+    // 基础状态
+    const [loading, setLoading] = useState(false);
+    const [apiKey, setApiKey] = useState('');
+    const [accountId, setAccountId] = useState('');
+
+    // 文本生成状态
+    const [textInput, setTextInput] = useState('');
+    const [textOutput, setTextOutput] = useState('');
+    const [selectedTextModel, setSelectedTextModel] = useState(AI_MODELS.text[0].id);
+
+    // 图像生成状态
+    const [imagePrompt, setImagePrompt] = useState('');
+    const [generatedImage, setGeneratedImage] = useState('');
+    const [selectedImageModel, setSelectedImageModel] = useState(AI_MODELS.image[0].id);
+
+    // 翻译状态
+    const [translationText, setTranslationText] = useState('');
+    const [translatedText, setTranslatedText] = useState('');
+    const [sourceLang, setSourceLang] = useState('en');
+    const [targetLang, setTargetLang] = useState('zh');
+
+    // 使用统计
+    const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
+
+    // 从localStorage加载配置
+    useEffect(() => {
+        const savedApiKey = localStorage.getItem('cf_worker_api_key');
+        const savedAccountId = localStorage.getItem('cf_account_id');
+
+        if (savedApiKey) setApiKey(savedApiKey);
+        if (savedAccountId) setAccountId(savedAccountId);
+    }, []);
+
+    // 保存配置到localStorage
+    const saveConfig = () => {
+        localStorage.setItem('cf_worker_api_key', apiKey);
+        localStorage.setItem('cf_account_id', accountId);
+        message.success('配置已保存');
+    };
+
+    // 获取使用统计
+    const fetchUsageStats = async () => {
+        if (!apiKey || !accountId) {
+            message.warning('请先配置API密钥和账户ID');
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct/stats`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('API响应:', data);
+                // 这里需要根据实际API响应格式调整
+                setUsageStats({
+                    daily_used: 0, // 从API获取实际值
+                    daily_limit: 10000,
+                    remaining: 10000,
+                    reset_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString()
+                });
+            }
+        } catch (error) {
+            console.error('获取使用统计失败:', error);
+        }
+    };
+
+    // 文本生成
+    const generateText = async () => {
+        if (!textInput.trim()) {
+            message.warning('请输入提示词');
+            return;
+        }
+
+        if (!apiKey || !accountId) {
+            message.warning('请先配置API密钥和账户ID');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${selectedTextModel}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: 'user', content: textInput }
+                        ],
+                        max_tokens: 1000,
+                        temperature: 0.7,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.success && data.result?.response) {
+                setTextOutput(data.result.response);
+                message.success('文本生成成功');
+                fetchUsageStats(); // 更新使用统计
+            } else {
+                throw new Error(data.errors?.[0]?.message || '生成失败');
+            }
+        } catch (error: any) {
+            message.error(`生成失败: ${error.message}`);
+            console.error('Text generation error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 图像生成
+    const generateImage = async () => {
+        if (!imagePrompt.trim()) {
+            message.warning('请输入图像描述');
+            return;
+        }
+
+        if (!apiKey || !accountId) {
+            message.warning('请先配置API密钥和账户ID');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${selectedImageModel}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: imagePrompt,
+                        num_steps: 20,
+                        guidance_scale: 7.5,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.success && data.result?.image) {
+                setGeneratedImage(`data:image/png;base64,${data.result.image}`);
+                message.success('图像生成成功');
+                fetchUsageStats(); // 更新使用统计
+            } else {
+                throw new Error(data.errors?.[0]?.message || '生成失败');
+            }
+        } catch (error: any) {
+            message.error(`生成失败: ${error.message}`);
+            console.error('Image generation error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 文本翻译
+    const translateText = async () => {
+        if (!translationText.trim()) {
+            message.warning('请输入要翻译的文本');
+            return;
+        }
+
+        if (!apiKey || !accountId) {
+            message.warning('请先配置API密钥和账户ID');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${AI_MODELS.translation[0].id}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: translationText,
+                        source_lang: sourceLang,
+                        target_lang: targetLang,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.success && data.result?.translated_text) {
+                setTranslatedText(data.result.translated_text);
+                message.success('翻译成功');
+                fetchUsageStats(); // 更新使用统计
+            } else {
+                throw new Error(data.errors?.[0]?.message || '翻译失败');
+            }
+        } catch (error: any) {
+            message.error(`翻译失败: ${error.message}`);
+            console.error('Translation error:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 复制文本
+    const copyText = (text: string) => {
+        navigator.clipboard.writeText(text);
+        message.success('已复制到剪贴板');
+    };
+
+    // 下载图像
+    const downloadImage = () => {
+        if (!generatedImage) return;
+
+        const link = document.createElement('a');
+        link.href = generatedImage;
+        link.download = `ai-generated-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        message.success('图像已下载');
+    };
+
+    // 清空函数
+    const clearTextChat = () => {
+        setTextInput('');
+        setTextOutput('');
+    };
+
+    const clearImage = () => {
+        setImagePrompt('');
+        setGeneratedImage('');
+    };
+
+    const clearTranslation = () => {
+        setTranslationText('');
+        setTranslatedText('');
+    };
+    const tabItems = [
+        {
+            key: 'text',
+            label: '文本生成',
+            children: (<Space direction="vertical" style={{ width: '100%' }} size="large">
+                <div>
+                    <Title level={4}>选择模型</Title>
+                    <Select
+                        value={selectedTextModel}
+                        onChange={setSelectedTextModel}
+                        style={{ width: '100%', marginBottom: '16px' }}
+                        optionLabelProp="label"
+                    >
+                        {AI_MODELS.text.map(model => (
+                            <Option key={model.id} value={model.id} label={model.name}>
+                                <div style={{ padding: '8px 0' }}>
+                                    <div style={{ fontWeight: 500, marginBottom: '4px' }}>{model.name}</div>
+                                    <Text type="secondary" style={{ fontSize: '12px', lineHeight: '1.4' }}>
+                                        {model.description}
+                                    </Text>
+                                </div>
+                            </Option>
+                        ))}
+                    </Select>
+                </div>
+
+                <div>
+                    <Title level={4}>输入提示词</Title>
+                    <TextArea
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        placeholder="请输入您的提示词..."
+                        rows={4}
+                        maxLength={2000}
+                        showCount
+                    />
+                </div>
+
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={generateText}
+                        loading={loading}
+                        icon={<SendOutlined />}
+                    >
+                        生成文本
+                    </Button>
+                    <Button onClick={clearTextChat} icon={<ClearOutlined />}>
+                        清空
+                    </Button>
+                </Space>
+
+                {textOutput && (
+                    <div>
+                        <Title level={4}>生成结果</Title>
+                        <div style={{
+                            padding: '16px',
+                            backgroundColor: '#f5f5f5',
+                            borderRadius: '8px',
+                            position: 'relative'
+                        }}>
+                            <Button
+                                size="small"
+                                icon={<CopyOutlined />}
+                                style={{ position: 'absolute', top: '8px', right: '8px' }}
+                                onClick={() => copyText(textOutput)}
+                            >
+                                复制
+                            </Button>
+                            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, paddingRight: '80px' }}>
+                                {textOutput}
+                            </pre>
+                        </div>
+                    </div>
+                )}
+            </Space>),
+        },
+        {
+            key: 'image',
+            label: '图像生成',
+            children: (<Space direction="vertical" style={{ width: '100%' }} size="large">
+                <div>
+                    <Title level={4}>选择模型</Title>
+                    <Select
+                        value={selectedImageModel}
+                        onChange={setSelectedImageModel}
+                        style={{ width: '100%', marginBottom: '16px' }}
+                        optionLabelProp="label"
+                    >
+                        {AI_MODELS.image.map(model => (
+                            <Option key={model.id} value={model.id} label={model.name}>
+                                <div style={{ padding: '8px 0' }}>
+                                    <div style={{ fontWeight: 500, marginBottom: '4px' }}>{model.name}</div>
+                                    <Text type="secondary" style={{ fontSize: '12px', lineHeight: '1.4' }}>
+                                        {model.description}
+                                    </Text>
+                                </div>
+                            </Option>
+                        ))}
+                    </Select>
+                </div>
+
+                <div>
+                    <Title level={4}>图像描述</Title>
+                    <TextArea
+                        value={imagePrompt}
+                        onChange={(e) => setImagePrompt(e.target.value)}
+                        placeholder="请描述您想要生成的图像..."
+                        rows={4}
+                        maxLength={500}
+                        showCount
+                    />
+                </div>
+
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={generateImage}
+                        loading={loading}
+                        icon={<SendOutlined />}
+                    >
+                        生成图像
+                    </Button>
+                    <Button onClick={clearImage} icon={<ClearOutlined />}>
+                        清空
+                    </Button>
+                </Space>
+
+                {generatedImage && (
+                    <div>
+                        <Title level={4}>生成结果</Title>
+                        <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                            <img
+                                src={generatedImage}
+                                alt="Generated"
+                                style={{
+                                    maxWidth: '100%',
+                                    height: 'auto',
+                                    maxHeight: '400px',
+                                    border: '1px solid #d9d9d9',
+                                    borderRadius: '4px'
+                                }}
+                            />
+                        </div>
+                        <Space style={{ marginTop: '12px' }}>
+                            <Button onClick={downloadImage}>
+                                下载图像
+                            </Button>
+                        </Space>
+                    </div>
+                )}
+            </Space>),
+        },
+        {
+            key: 'translation',
+            label: '文本翻译',
+            children: (<Space direction="vertical" style={{ width: '100%' }} size="large">
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Title level={4}>源语言</Title>
+                        <Select
+                            value={sourceLang}
+                            onChange={setSourceLang}
+                            style={{ width: '100%' }}
+                        >
+                            <Option value="en">英语</Option>
+                            <Option value="zh">中文</Option>
+                            <Option value="ja">日语</Option>
+                            <Option value="ko">韩语</Option>
+                            <Option value="fr">法语</Option>
+                            <Option value="de">德语</Option>
+                            <Option value="es">西班牙语</Option>
+                            <Option value="ru">俄语</Option>
+                        </Select>
+                    </Col>
+                    <Col span={12}>
+                        <Title level={4}>目标语言</Title>
+                        <Select
+                            value={targetLang}
+                            onChange={setTargetLang}
+                            style={{ width: '100%' }}
+                        >
+                            <Option value="en">英语</Option>
+                            <Option value="zh">中文</Option>
+                            <Option value="ja">日语</Option>
+                            <Option value="ko">韩语</Option>
+                            <Option value="fr">法语</Option>
+                            <Option value="de">德语</Option>
+                            <Option value="es">西班牙语</Option>
+                            <Option value="ru">俄语</Option>
+                        </Select>
+                    </Col>
+                </Row>
+
+                <div>
+                    <Title level={4}>输入文本</Title>
+                    <TextArea
+                        value={translationText}
+                        onChange={(e) => setTranslationText(e.target.value)}
+                        placeholder="请输入要翻译的文本..."
+                        rows={4}
+                        maxLength={2000}
+                        showCount
+                    />
+                </div>
+
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={translateText}
+                        loading={loading}
+                        icon={<SendOutlined />}
+                    >
+                        翻译
+                    </Button>
+                    <Button onClick={clearTranslation} icon={<ClearOutlined />}>
+                        清空
+                    </Button>
+                </Space>
+
+                {translatedText && (
+                    <div>
+                        <Title level={4}>翻译结果</Title>
+                        <div style={{
+                            padding: '16px',
+                            backgroundColor: '#f5f5f5',
+                            borderRadius: '8px',
+                            position: 'relative'
+                        }}>
+                            <Button
+                                size="small"
+                                icon={<CopyOutlined />}
+                                style={{ position: 'absolute', top: '8px', right: '8px' }}
+                                onClick={() => copyText(translatedText)}
+                            >
+                                复制
+                            </Button>
+                            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, paddingRight: '80px' }}>
+                                {translatedText}
+                            </pre>
+                        </div>
+                    </div>
+                )}
+            </Space>),
+        }
+    ];
+    return (
+        <div style={{ padding: '24px' }}>
+            <Title level={2}>
+                <RobotOutlined style={{ marginRight: '8px' }} />
+                Cloudflare Worker AI
+            </Title>
+            <Paragraph>
+                使用 Cloudflare Worker AI 进行文本生成、图像创建和多语言翻译。每天免费提供 10,000 个神经元，超过后将无法使用。
+            </Paragraph>
+
+            {/* 配置区域 */}
+            <Card title="API 配置" style={{ marginBottom: '16px' }}>
+                <Row gutter={16}>
+                    <Col span={12}>
+                        <Title level={4}>账户 ID</Title>
+                        <Input
+                            value={accountId}
+                            onChange={(e) => setAccountId(e.target.value)}
+                            placeholder="请输入 Cloudflare 账户 ID"
+                            style={{ marginBottom: '16px' }}
+                        />
+                    </Col>
+                    <Col span={12}>
+                        <Title level={4}>API Token</Title>
+                        <Input.Password
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                            placeholder="请输入 Cloudflare API Token"
+                            style={{ marginBottom: '16px' }}
+                        />
+                    </Col>
+                </Row>
+                <Space>
+                    <Button type="primary" onClick={saveConfig} icon={<ApiOutlined />}>
+                        保存配置
+                    </Button>
+                    <Button onClick={fetchUsageStats}>
+                        查看使用统计
+                    </Button>
+                </Space>
+
+                {usageStats && (
+                    <Alert
+                        style={{ marginTop: '16px' }}
+                        message={`今日使用情况: ${usageStats.daily_used} / ${usageStats.daily_limit} 神经元`}
+                        description={`剩余: ${usageStats.remaining} 神经元 | 重置时间: ${usageStats.reset_time}`}
+                        type={usageStats.remaining > 1000 ? 'success' : 'warning'}
+                        showIcon
+                    />
+                )}
+            </Card>
+
+            {/* 功能选项卡 */}
+            <Card>
+                <Tabs defaultActiveKey="text" items={tabItems}>
+                </Tabs>
+            </Card>
+
+            <Card title="使用说明" style={{ marginTop: '16px' }}>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                    <div>
+                        <Title level={5}>配置说明：</Title>
+                        <ul>
+                            <li>需要在 Cloudflare 控制台创建 API Token</li>
+                            <li>API Token 需要包含 Worker AI 权限</li>
+                            <li>账户 ID 可以在 Cloudflare 控制台右侧边栏找到</li>
+                            <li>配置信息会保存在本地浏览器中</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <Title level={5}>使用限制：</Title>
+                        <ul>
+                            <li>每天免费提供 10,000 个神经元</li>
+                            <li>不同模型消耗的神经元数量不同</li>
+                            <li>超过限制后需要等待第二天重置或升级账户</li>
+                            <li>建议合理使用，避免浪费配额</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <Title level={5}>模型说明：</Title>
+                        <ul>
+                            <li><strong>LLaMA 3.1 8B</strong>：通用对话模型，适合各种文本生成任务</li>
+                            <li><strong>Mistral 7B</strong>：轻量级模型，响应速度快，适合简单对话</li>
+                            <li><strong>DeepSeek R1</strong>：高性能模型，适合复杂推理和编程任务</li>
+                            <li><strong>Stable Diffusion XL</strong>：高质量图像生成，适合专业用途</li>
+                            <li><strong>SDXL Lightning</strong>：快速图像生成，适合实时应用</li>
+                        </ul>
+                    </div>
+                </Space>
+            </Card>
+        </div>
+    );
+}

@@ -78,7 +78,14 @@ function Home() {
             icon: <LockOutlined style={{ fontSize: '24px', color: '#f5222d' }} />,
             path: '/tools/password-generator',
             available: true
-        }
+        },
+        {
+            title: 'AI助手',
+            description: '智能助手，提供开发支持',
+            icon: <LockOutlined style={{ fontSize: '24px', color: '#f5222d' }} />,
+            path: '/tools/worker-ai',
+            available: true
+        },
     ];
 
     // 获取工具的访问统计
