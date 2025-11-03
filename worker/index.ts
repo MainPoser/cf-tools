@@ -13,6 +13,74 @@ export interface ClouldFlareEnv {
 }
 
 
+// Cloudflare AI API 代理处理
+async function handleAIProxy(request: Request, url: URL, corsHeaders: Record<string, string>) {
+  const pathParts = url.pathname.split('/');
+  
+  // 预期的路径格式: /api/ai/run/{modelId}
+  if (pathParts.length < 5 || pathParts[3] !== 'run') {
+    return Response.json({ error: 'Invalid AI API path' }, {
+      status: 400,
+      headers: corsHeaders
+    });
+  }
+
+  const modelId = pathParts[4];
+  
+  // 构建 Cloudflare AI API URL
+  const cfApiUrl = `https://api.cloudflare.com/client/v4/accounts/${pathParts[2]}/ai/run/${modelId}`;
+  
+  try {
+    // 获取请求体（如果是 POST 请求）
+    let body: RequestInit | undefined;
+    if (request.method === 'POST') {
+      const requestBody = await request.text();
+      body = {
+        method: 'POST',
+        headers: {
+          'Authorization': request.headers.get('Authorization') || '',
+          'Content-Type': 'application/json',
+        },
+        body: requestBody
+      };
+    } else {
+      body = {
+        method: 'GET',
+        headers: {
+          'Authorization': request.headers.get('Authorization') || '',
+          'Content-Type': 'application/json',
+        }
+      };
+    }
+
+    // 代理请求到 Cloudflare AI API
+    const response = await fetch(cfApiUrl, body);
+    
+    // 获取响应数据
+    const responseData = await response.text();
+    
+    // 返回响应，保持原始状态码和内容
+    return new Response(responseData, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': response.headers.get('Content-Type') || 'application/json',
+      }
+    });
+    
+  } catch (error) {
+    console.error('AI Proxy error:', error);
+    return Response.json({ 
+      error: 'Failed to proxy AI request',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, {
+      status: 500,
+      headers: corsHeaders
+    });
+  }
+}
+
 export default {
   async fetch(request, env: ClouldFlareEnv) {
     const url = new URL(request.url);
@@ -34,6 +102,11 @@ export default {
           name: "CF Tools",
           version: "1.0.0"
         }, { headers: corsHeaders });
+      }
+
+      // Cloudflare AI API 代理
+      if (url.pathname.startsWith('/api/') && url.pathname.includes('/ai/run/')) {
+        return handleAIProxy(request, url, corsHeaders);
       }
 
       // 记录访问

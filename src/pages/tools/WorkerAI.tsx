@@ -23,11 +23,23 @@ const AI_MODELS = {
     ]
 };
 
-interface UsageStats {
+// 单个模型使用统计
+interface ModelUsageStats {
+    model_id: string;
+    model_name: string;
     daily_used: number;
     daily_limit: number;
     remaining: number;
+    last_used: string;
+}
+
+// 总体使用统计
+interface UsageStats {
+    total_daily_used: number;
+    total_daily_limit: number;
+    total_remaining: number;
     reset_time: string;
+    models: ModelUsageStats[];
 }
 
 export default function WorkerAI() {
@@ -80,31 +92,93 @@ export default function WorkerAI() {
             message.warning('请先配置API密钥和账户ID');
             return;
         }
-
+        setLoading(true);
         try {
-            const response = await fetch(
-                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct/stats`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${apiKey}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
+            // 获取所有模型的使用统计
+            const allModelIds = [
+                ...AI_MODELS.text.map(model => model.id),
+                ...AI_MODELS.image.map(model => model.id),
+                ...AI_MODELS.translation.map(model => model.id)
+            ];
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log('API响应:', data);
-                // 这里需要根据实际API响应格式调整
-                setUsageStats({
-                    daily_used: 0, // 从API获取实际值
-                    daily_limit: 10000,
-                    remaining: 10000,
-                    reset_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString()
-                });
-            }
+            const modelStatsPromises = allModelIds.map(async (modelId) => {
+                try {
+                    const response = await fetch(
+                        `/api/${accountId}/ai/run/${modelId}/stats`,
+                        {
+                            headers: {
+                                'Authorization': `Bearer ${apiKey}`,
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    );
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // 查找模型名称
+                        const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
+                        const model = allModels.find(m => m.id === modelId);
+
+                        return {
+                            model_id: modelId,
+                            model_name: model?.name || modelId,
+                            daily_used: data.result?.usage?.daily_used || 0,
+                            daily_limit: data.result?.usage?.daily_limit || 10000,
+                            remaining: data.result?.usage?.remaining || 10000,
+                            last_used: data.result?.usage?.last_used || new Date().toISOString()
+                        };
+                    } else {
+                        // 如果无法获取某个模型的统计，返回默认值
+                        const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
+                        const model = allModels.find(m => m.id === modelId);
+
+                        return {
+                            model_id: modelId,
+                            model_name: model?.name || modelId,
+                            daily_used: 0,
+                            daily_limit: 10000,
+                            remaining: 10000,
+                            last_used: new Date().toISOString()
+                        };
+                    }
+                } catch (error) {
+                    console.error(`获取模型 ${modelId} 统计失败:`, error);
+                    // 返回默认值
+                    const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
+                    const model = allModels.find(m => m.id === modelId);
+
+                    return {
+                        model_id: modelId,
+                        model_name: model?.name || modelId,
+                        daily_used: 0,
+                        daily_limit: 10000,
+                        remaining: 10000,
+                        last_used: new Date().toISOString()
+                    };
+                }
+            });
+
+            const modelStats = await Promise.all(modelStatsPromises);
+
+            // 计算总体统计
+            const totalDailyUsed = modelStats.reduce((sum, model) => sum + model.daily_used, 0);
+            const totalDailyLimit = modelStats.reduce((sum, model) => sum + model.daily_limit, 0);
+            const totalRemaining = modelStats.reduce((sum, model) => sum + model.remaining, 0);
+
+            setUsageStats({
+                total_daily_used: totalDailyUsed,
+                total_daily_limit: totalDailyLimit,
+                total_remaining: totalRemaining,
+                reset_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString(),
+                models: modelStats
+            });
+
+            message.success('使用统计已更新');
         } catch (error) {
             console.error('获取使用统计失败:', error);
+            message.error('获取使用统计失败');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -123,7 +197,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${selectedTextModel}`,
+                `/api/${accountId}/ai/run/${selectedTextModel}`,
                 {
                     method: 'POST',
                     headers: {
@@ -175,7 +249,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${selectedImageModel}`,
+                `/api/${accountId}/ai/run/${selectedImageModel}`,
                 {
                     method: 'POST',
                     headers: {
@@ -225,7 +299,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${AI_MODELS.translation[0].id}`,
+                `/api/${accountId}/ai/run/${AI_MODELS.translation[0].id}`,
                 {
                     method: 'POST',
                     headers: {
@@ -582,13 +656,68 @@ export default function WorkerAI() {
                 </Space>
 
                 {usageStats && (
-                    <Alert
-                        style={{ marginTop: '16px' }}
-                        message={`今日使用情况: ${usageStats.daily_used} / ${usageStats.daily_limit} 神经元`}
-                        description={`剩余: ${usageStats.remaining} 神经元 | 重置时间: ${usageStats.reset_time}`}
-                        type={usageStats.remaining > 1000 ? 'success' : 'warning'}
-                        showIcon
-                    />
+                    <div style={{ marginTop: '16px' }}>
+                        <Alert
+                            message={`总体使用情况: ${usageStats.total_daily_used} / ${usageStats.total_daily_limit} 神经元`}
+                            description={`剩余: ${usageStats.total_remaining} 神经元 | 重置时间: ${usageStats.reset_time}`}
+                            type={usageStats.total_remaining > 1000 ? 'success' : 'warning'}
+                            showIcon
+                            style={{ marginBottom: '16px' }}
+                        />
+
+                        {/* 各模型详细统计 */}
+                        <Card title="各模型使用详情" size="small">
+                            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                {usageStats.models.map((model, index) => (
+                                    <div key={model.model_id} style={{
+                                        marginBottom: '12px',
+                                        padding: '8px',
+                                        backgroundColor: index % 2 === 0 ? '#fafafa' : 'white',
+                                        borderRadius: '4px',
+                                        border: '1px solid #f0f0f0'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <Text strong>{model.model_name}</Text>
+                                                <br />
+                                                <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                    {model.model_id}
+                                                </Text>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div>
+                                                    <Text style={{
+                                                        color: model.remaining > 1000 ? '#52c41a' : '#faad14',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        {model.daily_used} / {model.daily_limit}
+                                                    </Text>
+                                                </div>
+                                                <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                    剩余: {model.remaining}
+                                                </Text>
+                                            </div>
+                                        </div>
+                                        <div style={{ marginTop: '4px' }}>
+                                            <div style={{
+                                                backgroundColor: '#f0f0f0',
+                                                borderRadius: '2px',
+                                                height: '4px',
+                                                overflow: 'hidden'
+                                            }}>
+                                                <div style={{
+                                                    width: `${Math.min((model.daily_used / model.daily_limit) * 100, 100)}%`,
+                                                    height: '100%',
+                                                    backgroundColor: model.remaining > 1000 ? '#52c41a' : '#faad14',
+                                                    transition: 'width 0.3s ease'
+                                                }} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+                    </div>
                 )}
             </Card>
 
