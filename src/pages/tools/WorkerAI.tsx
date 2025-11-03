@@ -253,7 +253,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/proxies/cloudflare/client/v4/${accountId}/ai/run/${selectedTextModel}`,
+                `/api/proxies/cloudflare/client/v4/accounts/${accountId}/ai/run/${selectedTextModel}`,
                 {
                     method: 'POST',
                     headers: {
@@ -305,7 +305,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/proxies/cloudflare/client/v4/${accountId}/ai/run/${selectedImageModel}`,
+                `/api/proxies/cloudflare/client/v4/accounts/${accountId}/ai/run/${selectedImageModel}`,
                 {
                     method: 'POST',
                     headers: {
@@ -355,7 +355,7 @@ export default function WorkerAI() {
         setLoading(true);
         try {
             const response = await fetch(
-                `/api/proxies/cloudflare/client/v4/${accountId}/ai/run/${AI_MODELS.translation[0].id}`,
+                `/api/proxies/cloudflare/client/v4/accounts/${accountId}/ai/run/${AI_MODELS.translation[0].id}`,
                 {
                     method: 'POST',
                     headers: {
