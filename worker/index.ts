@@ -17,17 +17,17 @@ async function handleCloudFlareProxy(request: Request, url: URL, corsHeaders: Re
   // 预期的路径格式: /api/proxies/cloudflare/client/v4
   // 直接提取 /api/proxies/cloudflare/ 后面的路径部分
   const apiPath = url.pathname.substring(24); // 移除 "/api/proxies/cloudflare/client/v4/" 前缀
-  
+
   if (!apiPath) {
     return Response.json({ error: 'Invalid AI API path' }, {
       status: 400,
       headers: corsHeaders
     });
   }
-  
+
   // 构建 Cloudflare AI API URL
   const cfApiUrl = `https://api.cloudflare.com/${apiPath}`;
-  
+
   try {
     // 获取请求体（如果是 POST 请求）
     let body: RequestInit | undefined;
@@ -53,10 +53,18 @@ async function handleCloudFlareProxy(request: Request, url: URL, corsHeaders: Re
 
     // 代理请求到 Cloudflare AI API
     const response = await fetch(cfApiUrl, body);
-    
-    // 获取响应数据
-    const responseData = await response.text();
-    
+
+    // 检查响应类型
+    const contentType = response.headers.get('Content-Type') || '';
+    let responseData;
+    if (contentType.includes('image/')) {
+      // 如果是图像响应，直接返回二进制数据
+      responseData = await response.arrayBuffer();
+    } else {
+      // 如果是JSON或其他文本响应，使用text
+      responseData = await response.text();
+    }
+
     // 返回响应，保持原始状态码和内容
     return new Response(responseData, {
       status: response.status,
@@ -66,10 +74,10 @@ async function handleCloudFlareProxy(request: Request, url: URL, corsHeaders: Re
         'Content-Type': response.headers.get('Content-Type') || 'application/json',
       }
     });
-    
+
   } catch (error) {
     console.error('AI Proxy error:', error);
-    return Response.json({ 
+    return Response.json({
       error: 'Failed to proxy AI request',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, {

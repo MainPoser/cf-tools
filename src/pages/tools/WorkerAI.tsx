@@ -330,9 +330,7 @@ export default function WorkerAI() {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        prompt: imagePrompt,
-                        num_steps: 20,
-                        guidance_scale: 7.5,
+                        prompt: imagePrompt
                     }),
                 }
             );
@@ -350,12 +348,14 @@ export default function WorkerAI() {
                 throw new Error(errorMessage);
             }
 
-  // 检查响应类型
+            // 检查响应类型
             const contentType = response.headers.get('content-type');
-            
+            console.log('Response content-type:', contentType); // 调试信息
+
             if (contentType && contentType.includes('application/json')) {
                 // 如果是JSON响应（某些模型可能返回JSON）
                 const data = await response.json();
+                console.log('JSON response:', data); // 调试信息
                 if (data.success && data.result?.image) {
                     setGeneratedImage(`data:image/png;base64,${data.result.image}`);
                 } else {
@@ -364,10 +364,12 @@ export default function WorkerAI() {
             } else {
                 // 如果是二进制响应（PNG图像）
                 const imageBlob = await response.blob();
+                console.log('Blob created, size:', imageBlob.size); // 调试信息
                 const imageUrl = URL.createObjectURL(imageBlob);
+                console.log('Blob URL created:', imageUrl); // 调试信息
                 setGeneratedImage(imageUrl);
             }
-            
+
             message.success('图像生成成功');
             fetchUsageStats(); // 更新使用统计
         } catch (error: any) {
@@ -434,13 +436,25 @@ export default function WorkerAI() {
         message.success('已复制到剪贴板');
     };
 
-    // 下载图像
+   // 下载图像
     const downloadImage = () => {
         if (!generatedImage) return;
 
         const link = document.createElement('a');
         link.href = generatedImage;
-        link.download = `ai-generated-${Date.now()}.png`;
+        
+        // 根据图像URL类型设置文件名
+        if (generatedImage.startsWith('data:image/png;base64,')) {
+            // Base64编码的图像
+            link.download = `ai-generated-${Date.now()}.png`;
+        } else if (generatedImage.startsWith('blob:')) {
+            // Blob URL
+            link.download = `ai-generated-${Date.now()}.png`;
+        } else {
+            // 其他格式
+            link.download = `ai-generated-${Date.now()}.png`;
+        }
+        
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -454,6 +468,10 @@ export default function WorkerAI() {
     };
 
     const clearImage = () => {
+        // 如果是Blob URL，需要释放内存
+        if (generatedImage && generatedImage.startsWith('blob:')) {
+            URL.revokeObjectURL(generatedImage);
+        }
         setImagePrompt('');
         setGeneratedImage('');
     };
