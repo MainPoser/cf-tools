@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Input, Button, Typography, Space, message, Select, Row, Col, Alert, Tabs } from 'antd';
+import { Card, Input, Button, Typography, Space, message, Select,Divider, Row, Col, Alert, Tabs } from 'antd';
 import { RobotOutlined, SendOutlined, ClearOutlined, CopyOutlined, ApiOutlined } from '@ant-design/icons';
 import { useAutoTrackVisit } from '../../hooks/useAnalytics';
 
@@ -27,16 +27,14 @@ const AI_MODELS = {
 interface ModelUsageStats {
     model_id: string;
     model_name: string;
-    daily_used: number;
-    daily_limit: number;
-    remaining: number;
+    used: number; // 该模型已使用的神经元数量
     last_used: string;
 }
 
 // 总体使用统计
 interface UsageStats {
     total_daily_used: number;
-    total_daily_limit: number;
+    total_daily_limit: number; // 固定为10000
     total_remaining: number;
     reset_time: string;
     models: ModelUsageStats[];
@@ -94,76 +92,53 @@ export default function WorkerAI() {
         }
         setLoading(true);
         try {
-            // 获取所有模型的使用统计
+            // Cloudflare AI API 是共享配额，我们只需要查询一次总体使用情况
+            // 使用任意一个模型来查询总体统计
+            const response = await fetch(
+                `/api/${accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct/stats`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            let totalDailyUsed = 0;
+            let totalDailyLimit = 10000; // Cloudflare 免费配额是每天10000个神经元
+            let totalRemaining = totalDailyLimit;
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('API响应:', data);
+
+                // 根据实际API响应格式获取使用数据
+                if (data.result && data.result.usage) {
+                    totalDailyUsed = data.result.usage.daily_used || 0;
+                    totalRemaining = data.result.usage.remaining || (totalDailyLimit - totalDailyUsed);
+                } else if (data.result && data.result.result && data.result.result.usage) {
+                    // 处理可能的嵌套结构
+                    totalDailyUsed = data.result.result.usage.daily_used || 0;
+                    totalRemaining = data.result.result.usage.remaining || (totalDailyLimit - totalDailyUsed);
+                }
+            }
+
+            // 获取所有模型信息（用于显示）
             const allModelIds = [
                 ...AI_MODELS.text.map(model => model.id),
                 ...AI_MODELS.image.map(model => model.id),
                 ...AI_MODELS.translation.map(model => model.id)
             ];
 
-            const modelStatsPromises = allModelIds.map(async (modelId) => {
-                try {
-                    const response = await fetch(
-                        `/api/${accountId}/ai/run/${modelId}/stats`,
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${apiKey}`,
-                                'Content-Type': 'application/json',
-                            },
-                        }
-                    );
+            const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        // 查找模型名称
-                        const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
-                        const model = allModels.find(m => m.id === modelId);
-
-                        return {
-                            model_id: modelId,
-                            model_name: model?.name || modelId,
-                            daily_used: data.result?.usage?.daily_used || 0,
-                            daily_limit: data.result?.usage?.daily_limit || 10000,
-                            remaining: data.result?.usage?.remaining || 10000,
-                            last_used: data.result?.usage?.last_used || new Date().toISOString()
-                        };
-                    } else {
-                        // 如果无法获取某个模型的统计，返回默认值
-                        const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
-                        const model = allModels.find(m => m.id === modelId);
-
-                        return {
-                            model_id: modelId,
-                            model_name: model?.name || modelId,
-                            daily_used: 0,
-                            daily_limit: 10000,
-                            remaining: 10000,
-                            last_used: new Date().toISOString()
-                        };
-                    }
-                } catch (error) {
-                    console.error(`获取模型 ${modelId} 统计失败:`, error);
-                    // 返回默认值
-                    const allModels = [...AI_MODELS.text, ...AI_MODELS.image, ...AI_MODELS.translation];
-                    const model = allModels.find(m => m.id === modelId);
-
-                    return {
-                        model_id: modelId,
-                        model_name: model?.name || modelId,
-                        daily_used: 0,
-                        daily_limit: 10000,
-                        remaining: 10000,
-                        last_used: new Date().toISOString()
-                    };
-                }
-            });
-
-            const modelStats = await Promise.all(modelStatsPromises);
-
-            // 计算总体统计
-            const totalDailyUsed = modelStats.reduce((sum, model) => sum + model.daily_used, 0);
-            const totalDailyLimit = modelStats.reduce((sum, model) => sum + model.daily_limit, 0);
-            const totalRemaining = modelStats.reduce((sum, model) => sum + model.remaining, 0);
+            // 创建模型统计列表（这里我们显示所有可用模型，但实际使用量是共享的）
+            const modelStats: ModelUsageStats[] = allModels.map(model => ({
+                model_id: model.id,
+                model_name: model.name,
+                used: 0, // 单个模型的使用量需要从其他API获取，这里暂时设为0
+                last_used: new Date().toISOString()
+            }));
 
             setUsageStats({
                 total_daily_used: totalDailyUsed,
@@ -660,17 +635,49 @@ export default function WorkerAI() {
                         <Alert
                             message={`总体使用情况: ${usageStats.total_daily_used} / ${usageStats.total_daily_limit} 神经元`}
                             description={`剩余: ${usageStats.total_remaining} 神经元 | 重置时间: ${usageStats.reset_time}`}
-                            type={usageStats.total_remaining > 1000 ? 'success' : 'warning'}
+                            type={usageStats.total_remaining > 1000 ? 'success' : usageStats.total_remaining > 100 ? 'warning' : 'error'}
                             showIcon
                             style={{ marginBottom: '16px' }}
                         />
 
-                        {/* 各模型详细统计 */}
-                        <Card title="各模型使用详情" size="small">
-                            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                        {/* 配额使用进度条 */}
+                        <Card title="配额使用详情" size="small">
+                            <div style={{ marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <Text strong>今日配额使用率</Text>
+                                    <Text style={{
+                                        color: usageStats.total_remaining > 1000 ? '#52c41a' : usageStats.total_remaining > 100 ? '#faad14' : '#ff4d4f',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {((usageStats.total_daily_used / usageStats.total_daily_limit) * 100).toFixed(1)}%
+                                    </Text>
+                                </div>
+                                <div style={{
+                                    backgroundColor: '#f0f0f0',
+                                    borderRadius: '4px',
+                                    height: '8px',
+                                    overflow: 'hidden'
+                                }}>
+                                    <div style={{
+                                        width: `${Math.min((usageStats.total_daily_used / usageStats.total_daily_limit) * 100, 100)}%`,
+                                        height: '100%',
+                                        backgroundColor: usageStats.total_remaining > 1000 ? '#52c41a' : usageStats.total_remaining > 100 ? '#faad14' : '#ff4d4f',
+                                        transition: 'width 0.3s ease'
+                                    }} />
+                                </div>
+                                <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                                    <Text type="secondary">已使用: {usageStats.total_daily_used} 神经元</Text>
+                                    <Text type="secondary">剩余: {usageStats.total_remaining} 神经元</Text>
+                                </div>
+                            </div>
+
+                            <Divider />
+
+                            <Title level={5}>可用模型</Title>
+                            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
                                 {usageStats.models.map((model, index) => (
                                     <div key={model.model_id} style={{
-                                        marginBottom: '12px',
+                                        marginBottom: '8px',
                                         padding: '8px',
                                         backgroundColor: index % 2 === 0 ? '#fafafa' : 'white',
                                         borderRadius: '4px',
@@ -678,44 +685,29 @@ export default function WorkerAI() {
                                     }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div>
-                                                <Text strong>{model.model_name}</Text>
+                                                <Text>{model.model_name}</Text>
                                                 <br />
                                                 <Text type="secondary" style={{ fontSize: '12px' }}>
                                                     {model.model_id}
                                                 </Text>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
-                                                <div>
-                                                    <Text style={{
-                                                        color: model.remaining > 1000 ? '#52c41a' : '#faad14',
-                                                        fontWeight: 'bold'
-                                                    }}>
-                                                        {model.daily_used} / {model.daily_limit}
-                                                    </Text>
-                                                </div>
                                                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                                                    剩余: {model.remaining}
+                                                    共享配额
                                                 </Text>
-                                            </div>
-                                        </div>
-                                        <div style={{ marginTop: '4px' }}>
-                                            <div style={{
-                                                backgroundColor: '#f0f0f0',
-                                                borderRadius: '2px',
-                                                height: '4px',
-                                                overflow: 'hidden'
-                                            }}>
-                                                <div style={{
-                                                    width: `${Math.min((model.daily_used / model.daily_limit) * 100, 100)}%`,
-                                                    height: '100%',
-                                                    backgroundColor: model.remaining > 1000 ? '#52c41a' : '#faad14',
-                                                    transition: 'width 0.3s ease'
-                                                }} />
                                             </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+
+                            <Alert
+                                style={{ marginTop: '12px' }}
+                                message="配额说明"
+                                description="所有模型共享每天10,000个神经元的配额。不同模型消耗的神经元数量不同，文本生成通常消耗较少，图像生成消耗较多。"
+                                type="info"
+                                showIcon
+                            />
                         </Card>
                     </div>
                 )}
@@ -741,8 +733,14 @@ export default function WorkerAI() {
                     <div>
                         <Title level={5}>使用限制：</Title>
                         <ul>
-                            <li>每天免费提供 10,000 个神经元</li>
-                            <li>不同模型消耗的神经元数量不同</li>
+                            <li>所有模型<strong>共享</strong>每天免费提供的 10,000 个神经元配额</li>
+                            <li>不同模型消耗的神经元数量不同：
+                                <ul>
+                                    <li>文本生成模型：每次请求约消耗100-500个神经元</li>
+                                    <li>图像生成模型：每次请求约消耗500-2000个神经元</li>
+                                    <li>翻译模型：每次请求约消耗50-200个神经元</li>
+                                </ul>
+                            </li>
                             <li>超过限制后需要等待第二天重置或升级账户</li>
                             <li>建议合理使用，避免浪费配额</li>
                         </ul>
