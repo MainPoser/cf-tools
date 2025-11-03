@@ -338,17 +338,38 @@ export default function WorkerAI() {
             );
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // 尝试解析错误响应
+                const errorText = await response.text();
+                let errorMessage = `HTTP error! status: ${response.status}`;
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.errors?.[0]?.message || errorMessage;
+                } catch {
+                    errorMessage = errorText || errorMessage;
+                }
+                throw new Error(errorMessage);
             }
 
-            const data = await response.json();
-            if (data.success && data.result?.image) {
-                setGeneratedImage(`data:image/png;base64,${data.result.image}`);
-                message.success('图像生成成功');
-                fetchUsageStats(); // 更新使用统计
+  // 检查响应类型
+            const contentType = response.headers.get('content-type');
+            
+            if (contentType && contentType.includes('application/json')) {
+                // 如果是JSON响应（某些模型可能返回JSON）
+                const data = await response.json();
+                if (data.success && data.result?.image) {
+                    setGeneratedImage(`data:image/png;base64,${data.result.image}`);
+                } else {
+                    throw new Error(data.errors?.[0]?.message || '生成失败');
+                }
             } else {
-                throw new Error(data.errors?.[0]?.message || '生成失败');
+                // 如果是二进制响应（PNG图像）
+                const imageBlob = await response.blob();
+                const imageUrl = URL.createObjectURL(imageBlob);
+                setGeneratedImage(imageUrl);
             }
+            
+            message.success('图像生成成功');
+            fetchUsageStats(); // 更新使用统计
         } catch (error: any) {
             message.error(`生成失败: ${error.message}`);
             console.error('Image generation error:', error);
