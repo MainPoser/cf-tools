@@ -811,10 +811,10 @@ export default function WorkerAI() {
                                                 </Text>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
-                                                <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                <Text type="secondary" style={{ fontSize: '12px', display: 'block' }}>
                                                     共享配额
                                                 </Text>
-                                                <Text type="warning" style={{ fontSize: '12px' }}>
+                                                <Text type="warning" style={{ fontSize: '12px', display: 'block' }}>
                                                     最近24小时使用: {model.used} 神经元
                                                 </Text>
                                             </div>
