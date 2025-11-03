@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Input, Button, Typography, Space, message, Select, Row, Col, Alert, Divider } from 'antd';
+import { Card, Input, Button, Typography, Space, message, Select, Row, Col, Alert } from 'antd';
 import { SendOutlined, ClearOutlined, CopyOutlined, ApiOutlined } from '@ant-design/icons';
 import { useAutoTrackVisit } from '../../hooks/useAnalytics';
 
@@ -34,15 +34,6 @@ interface ModelUsageStats {
     last_used: string;
 }
 
-// 总体使用统计
-interface UsageStats {
-    total_daily_used: number;
-    total_daily_limit: number; // 固定为10000
-    total_remaining: number;
-    reset_time: string;
-    models: ModelUsageStats[];
-}
-
 export default function AITextTranslation() {
     useAutoTrackVisit('AI文本翻译');
 
@@ -55,7 +46,7 @@ export default function AITextTranslation() {
     const [targetLang, setTargetLang] = useState('zh');
 
     // 使用统计
-    const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
+    const [usageStats, setUsageStats] = useState<ModelUsageStats | null>(null);
 
     // 从localStorage加载配置
     useEffect(() => {
@@ -87,35 +78,7 @@ export default function AITextTranslation() {
         }
         setLoading(true);
         try {
-            // 获取今天的日期
-            const today = new Date().toISOString().split('T')[0];
-
-            // 1. 查询总消耗神经元
-            const totalNeuronsQuery = {
-                operationName: "GetAIInferencesTotalNeurons",
-                variables: {
-                    accountTag: accountId,
-                    dateStart: today,
-                    dateEnd: today
-                },
-                query: `query GetAIInferencesTotalNeurons($accountTag: string, $filter: filter) {
-                    viewer {
-                        accounts(filter: {accountTag: $accountTag}) {
-                            data: aiInferenceAdaptiveGroups(filter: {date_geq: $dateStart, date_leq: $dateEnd}, limit: 1) {
-                                sum {
-                                    neurons: totalNeurons
-                                    __typename
-                                }
-                                __typename
-                            }
-                            __typename
-                        }
-                        __typename
-                    }
-                }`
-            };
-
-            // 2. 查询翻译模型的使用情况
+            // 查询翻译模型的使用情况
             const modelUsageQuery = {
                 operationName: "GetAIInferencesCostsGroupByModelsOverTime",
                 variables: {
@@ -150,16 +113,6 @@ export default function AITextTranslation() {
                 }`
             };
 
-            // 发送总神经元查询
-            const totalResponse = await fetch('/api/proxies/cloudflare/client/v4/graphql', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(totalNeuronsQuery)
-            });
-
             // 发送模型使用查询
             const modelResponse = await fetch('/api/proxies/cloudflare/client/v4/graphql', {
                 method: 'POST',
@@ -170,21 +123,13 @@ export default function AITextTranslation() {
                 body: JSON.stringify(modelUsageQuery)
             });
 
-            if (!totalResponse.ok || !modelResponse.ok) {
+            if (!modelResponse.ok) {
                 throw new Error('GraphQL请求失败');
             }
 
-            const totalData = await totalResponse.json();
             const modelData = await modelResponse.json();
 
-            console.log('总神经元响应:', totalData);
             console.log('模型使用响应:', modelData);
-
-            // 处理总神经元数据
-            let totalDailyUsed = 0;
-            if (totalData.data?.viewer?.accounts?.[0]?.data?.[0]?.sum?.neurons) {
-                totalDailyUsed = totalData.data.viewer.accounts[0].data[0].sum.neurons;
-            }
 
             // 处理模型使用数据
             let modelUsed = 0;
@@ -202,35 +147,15 @@ export default function AITextTranslation() {
                 });
             }
 
-            const totalDailyLimit = 10000; // Cloudflare 免费配额是每天10000个神经元
-            const totalRemaining = Math.max(0, totalDailyLimit - totalDailyUsed);
-
-            // 创建模型统计列表
-            const modelStats: ModelUsageStats[] = [{
+            // 创建模型统计
+            const modelStats: ModelUsageStats = {
                 model_id: TRANSLATION_MODEL.id,
                 model_name: TRANSLATION_MODEL.name,
                 used: modelUsed,
                 last_used: new Date().toISOString()
-            }];
+            };
 
-            // 计算下一个UTC 00:00重置时间，并转换为客户端时区
-            const now = new Date();
-            const nowUtc = new Date(now.toISOString()); // 当前UTC时间
-            const tomorrowUtc = new Date(nowUtc);
-            tomorrowUtc.setUTCDate(tomorrowUtc.getUTCDate() + 1);
-            tomorrowUtc.setUTCHours(0, 0, 0, 0); // 设置为明天UTC 00:00:00
-
-            // 将UTC时间转换为客户端本地时间字符串
-            const resetTimeLocal = tomorrowUtc.toLocaleString();
-
-            setUsageStats({
-                total_daily_used: totalDailyUsed,
-                total_daily_limit: totalDailyLimit,
-                total_remaining: totalRemaining,
-                reset_time: resetTimeLocal,
-                models: modelStats
-            });
-
+            setUsageStats(modelStats);
             message.success('使用统计已更新');
         } catch (error: any) {
             console.error('获取使用统计失败:', error);
@@ -341,82 +266,38 @@ export default function AITextTranslation() {
 
                 {usageStats && (
                     <div style={{ marginTop: '16px' }}>
-                        <Alert
-                            message={`总体使用情况: ${usageStats.total_daily_used} / ${usageStats.total_daily_limit} 神经元`}
-                            description={`剩余: ${usageStats.total_remaining} 神经元 | 重置时间: ${usageStats.reset_time}`}
-                            type={usageStats.total_remaining > 1000 ? 'success' : usageStats.total_remaining > 100 ? 'warning' : 'error'}
-                            showIcon
-                            style={{ marginBottom: '16px' }}
-                        />
-
-                        {/* 配额使用进度条 */}
-                        <Card title="配额使用详情" size="small">
+                        {/* 翻译模型使用统计 */}
+                        <Card title="翻译模型使用统计" size="small">
                             <div style={{ marginBottom: '16px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <Text strong>今日配额使用率</Text>
-                                    <Text style={{
-                                        color: usageStats.total_remaining > 1000 ? '#52c41a' : usageStats.total_remaining > 100 ? '#faad14' : '#ff4d4f',
-                                        fontWeight: 'bold'
-                                    }}>
-                                        {((usageStats.total_daily_used / usageStats.total_daily_limit) * 100).toFixed(1)}%
-                                    </Text>
-                                </div>
+                                <Title level={5}>模型信息</Title>
                                 <div style={{
-                                    backgroundColor: '#f0f0f0',
+                                    marginBottom: '8px',
+                                    padding: '8px',
+                                    backgroundColor: '#fafafa',
                                     borderRadius: '4px',
-                                    height: '8px',
-                                    overflow: 'hidden'
+                                    border: '1px solid #f0f0f0'
                                 }}>
-                                    <div style={{
-                                        width: `${Math.min((usageStats.total_daily_used / usageStats.total_daily_limit) * 100, 100)}%`,
-                                        height: '100%',
-                                        backgroundColor: usageStats.total_remaining > 1000 ? '#52c41a' : usageStats.total_remaining > 100 ? '#faad14' : '#ff4d4f',
-                                        transition: 'width 0.3s ease'
-                                    }} />
-                                </div>
-                                <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                                    <Text type="secondary">已使用: {usageStats.total_daily_used} 神经元</Text>
-                                    <Text type="secondary">剩余: {usageStats.total_remaining} 神经元</Text>
-                                </div>
-                            </div>
-
-                            <Divider />
-
-                            <Title level={5}>可用模型</Title>
-                            <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                                {usageStats.models.map((model, index) => (
-                                    <div key={model.model_id} style={{
-                                        marginBottom: '8px',
-                                        padding: '8px',
-                                        backgroundColor: index % 2 === 0 ? '#fafafa' : 'white',
-                                        borderRadius: '4px',
-                                        border: '1px solid #f0f0f0'
-                                    }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div>
-                                                <Text>{model.model_name}</Text>
-                                                <br />
-                                                <Text type="secondary" style={{ fontSize: '12px' }}>
-                                                    {model.model_id}
-                                                </Text>
-                                            </div>
-                                            <div style={{ textAlign: 'right' }}>
-                                                <Text type="secondary" style={{ fontSize: '12px', display: 'block' }}>
-                                                    共享配额
-                                                </Text>
-                                                <Text type="warning" style={{ fontSize: '12px', display: 'block' }}>
-                                                    最近24小时使用: {model.used} 神经元
-                                                </Text>
-                                            </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div>
+                                            <Text strong>{usageStats.model_name}</Text>
+                                            <br />
+                                            <Text type="secondary" style={{ fontSize: '12px' }}>
+                                                {usageStats.model_id}
+                                            </Text>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <Text type="warning" style={{ fontSize: '12px', display: 'block' }}>
+                                                最近24小时使用: {usageStats.used} 神经元
+                                            </Text>
                                         </div>
                                     </div>
-                                ))}
+                                </div>
                             </div>
 
                             <Alert
                                 style={{ marginTop: '12px' }}
-                                message="配额说明"
-                                description="所有模型共享每天10,000个神经元的配额。翻译通常消耗50-200个神经元。"
+                                message="使用说明"
+                                description="翻译通常消耗50-200个神经元。所有模型共享每天10,000个神经元的配额。"
                                 type="info"
                                 showIcon
                             />
