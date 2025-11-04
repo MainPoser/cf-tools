@@ -13,7 +13,9 @@ import {
     RobotOutlined,
     EditOutlined,
     PictureOutlined,
-    TranslationOutlined
+    TranslationOutlined,
+    ApiOutlined,
+    ThunderboltOutlined
 } from '@ant-design/icons';
 import { theme } from 'antd';
 import { useSiteStats } from '../../hooks/useAnalytics';
@@ -26,7 +28,8 @@ function Home() {
     const { token: { colorBgContainer } } = theme.useToken();
     const { stats: siteStats, loading: statsLoading } = useSiteStats();
 
-    const tools = [
+    // 开发者工具集
+    const devTools = [
         {
             title: 'Base64编解码',
             description: '快速进行Base64编码和解码操作',
@@ -82,7 +85,11 @@ function Home() {
             icon: <LockOutlined style={{ fontSize: '24px', color: '#f5222d' }} />,
             path: '/tools/password-generator',
             available: true
-        },
+        }
+    ];
+
+    // AI工具集
+    const aiTools = [
         {
             title: 'AI工具总览',
             description: '探索各种AI智能工具',
@@ -121,92 +128,162 @@ function Home() {
         return siteStats.tools[toolTitle] || { totalVisits: 0, todayVisits: 0 };
     };
 
+    // 渲染工具卡片
+    const renderToolCard = (tool: any, index: number) => {
+        const toolStats = getToolStats(tool.title);
+        return (
+            <Col xs={24} sm={12} md={8} lg={6} key={index}>
+                <Card
+                    hoverable={tool.available}
+                    style={{
+                        height: '160px',
+                        textAlign: 'center',
+                        opacity: tool.available ? 1 : 0.6,
+                        cursor: tool.available ? 'pointer' : 'not-allowed',
+                        transition: 'all 0.3s ease'
+                    }}
+                    styles={{
+                        body: {
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            height: '100%',
+                            padding: '12px'
+                        }
+                    }}
+                    onClick={() => tool.available && navigate(tool.path)}
+                >
+                    <div>
+                        <div style={{ marginBottom: '8px' }}>
+                            {tool.icon}
+                        </div>
+                        <Title level={5} style={{ margin: '4px 0', fontSize: '14px' }}>
+                            {tool.title}
+                            {!tool.available && <span style={{ color: '#999', fontSize: '10px', marginLeft: '4px' }}> (开发中)</span>}
+                        </Title>
+                        <Paragraph style={{ margin: 0, color: '#666', fontSize: '11px' }}>
+                            {tool.description}
+                        </Paragraph>
+                    </div>
+
+                    {/* 访问统计信息 */}
+                    {tool.available && !statsLoading && (
+                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #f0f0f0' }}>
+                            <Space size="small" style={{ fontSize: '10px', color: '#999' }}>
+                                <span>总: {toolStats.totalVisits}</span>
+                                <span>今: {toolStats.todayVisits}</span>
+                            </Space>
+                        </div>
+                    )}
+                </Card>
+            </Col>
+        );
+    };
+
     return (
-        <div className="home-container" style={{ background: colorBgContainer }}>
-            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                <Title level={1}>
+        <div className="home-container" style={{ background: colorBgContainer, padding: '24px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                <Title level={3} style={{ marginBottom: '8px' }}>
                     <ToolOutlined style={{ marginRight: '12px' }} />
                     开发者工具集
                 </Title>
-                <Paragraph style={{ fontSize: '18px', color: '#666' }}>
+                <Paragraph style={{ fontSize: '16px', color: '#666', marginBottom: '16px' }}>
                     一站式开发工具，提高你的工作效率
                 </Paragraph>
 
                 {/* 网站总体统计信息 */}
                 {!statsLoading && (
-                    <div style={{ marginTop: '24px' }}>
-                        <Space size="large">
+                    <div style={{ marginTop: '16px' }}>
+                        <Space size="middle">
                             <Statistic
                                 title="总访问次数"
                                 value={siteStats.siteTotal}
                                 prefix={<EyeOutlined />}
-                                valueStyle={{ color: '#1890ff' }}
+                                valueStyle={{ color: '#1890ff', fontSize: '20px' }}
+                                style={{ fontSize: '12px' }}
                             />
                             <Statistic
                                 title="今日访问"
                                 value={siteStats.siteToday}
                                 prefix={<EyeOutlined />}
-                                valueStyle={{ color: '#52c41a' }}
+                                valueStyle={{ color: '#52c41a', fontSize: '20px' }}
+                                style={{ fontSize: '12px' }}
                             />
                         </Space>
                     </div>
                 )}
             </div>
 
-            <Row gutter={[24, 24]}>
-                {tools.map((tool, index) => {
-                    const toolStats = getToolStats(tool.title);
-                    return (
-                        <Col xs={24} sm={12} md={8} lg={6} key={index}>
-                            <Card
-                                hoverable={tool.available}
-                                style={{
-                                    height: '200px',
-                                    textAlign: 'center',
-                                    opacity: tool.available ? 1 : 0.6,
-                                    cursor: tool.available ? 'pointer' : 'not-allowed'
-                                }}
-                                styles={{
-                                    body: {
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        justifyContent: 'space-between',
-                                        height: '100%',
-                                        padding: '16px'
-                                    }
-                                }}
-                                onClick={() => tool.available && navigate(tool.path)}
-                            >
-                                <div>
-                                    <div style={{ marginBottom: '12px' }}>
-                                        {tool.icon}
-                                    </div>
-                                    <Title level={5} style={{ margin: '8px 0' }}>
-                                        {tool.title}
-                                        {!tool.available && <span style={{ color: '#999', fontSize: '12px', marginLeft: '8px' }}> (开发中)</span>}
-                                    </Title>
-                                    <Paragraph style={{ margin: 0, color: '#666', fontSize: '12px' }}>
-                                        {tool.description}
-                                    </Paragraph>
-                                </div>
+            {/* 开发者工具集区域 */}
+            <div style={{
+                marginBottom: '32px',
+                padding: '16px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '12px',
+                boxShadow: '0 4px 16px rgba(102, 126, 234, 0.1)'
+            }}>
+                <div style={{
+                    textAlign: 'center',
+                    marginBottom: '20px',
+                    color: 'white'
+                }}>
+                    <Title level={2} style={{ color: 'white', marginBottom: '4px', fontSize: '20px' }}>
+                        <ApiOutlined style={{ marginRight: '8px' }} />
+                        开发者工具
+                    </Title>
+                    <Paragraph style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '14px', marginBottom: 0 }}>
+                        实用开发工具，提升编程效率
+                    </Paragraph>
+                </div>
 
-                                {/* 访问统计信息 */}
-                                {tool.available && !statsLoading && (
-                                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f0f0f0' }}>
-                                        <Space size="small" style={{ fontSize: '11px', color: '#999' }}>
-                                            <span>总访问: {toolStats.totalVisits}</span>
-                                            <span>今日: {toolStats.todayVisits}</span>
-                                        </Space>
-                                    </div>
-                                )}
-                            </Card>
-                        </Col>
-                    );
-                })}
-            </Row>
+                <div style={{
+                    background: 'white',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                }}>
+                    <Row gutter={[16, 16]}>
+                        {devTools.map((tool, index) => renderToolCard(tool, index))}
+                    </Row>
+                </div>
+            </div>
 
-            <div style={{ textAlign: 'center', marginTop: '48px' }}>
-                <Space>
+            {/* AI工具集区域 */}
+            <div style={{
+                marginBottom: '32px',
+                padding: '16px',
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                borderRadius: '12px',
+                boxShadow: '0 4px 16px rgba(240, 147, 251, 0.1)'
+            }}>
+                <div style={{
+                    textAlign: 'center',
+                    marginBottom: '20px',
+                    color: 'white'
+                }}>
+                    <Title level={2} style={{ color: 'white', marginBottom: '4px', fontSize: '20px' }}>
+                        <ThunderboltOutlined style={{ marginRight: '8px' }} />
+                        AI 智能工具
+                    </Title>
+                    <Paragraph style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '14px', marginBottom: 0 }}>
+                        人工智能赋能，创意无限可能
+                    </Paragraph>
+                </div>
+
+                <div style={{
+                    background: 'white',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                }}>
+                    <Row gutter={[16, 16]}>
+                        {aiTools.map((tool, index) => renderToolCard(tool, index))}
+                    </Row>
+                </div>
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '32px' }}>
+                <Space size="large">
                     <Button type="primary" size="large" onClick={() => navigate('/tools/base64')}>
                         开始使用 Base64 工具
                     </Button>
