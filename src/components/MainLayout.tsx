@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Layout, Menu, theme } from 'antd';
-import { 
-    UserOutlined, 
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, theme, Typography } from 'antd';
+import {
+    UserOutlined,
     PictureOutlined,
     ToolOutlined,
     CodeOutlined,
@@ -13,19 +13,21 @@ import {
     LockOutlined,
     RobotOutlined,
     TranslationOutlined,
-    EditOutlined
+    EditOutlined,
+    RocketOutlined
 } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 import './MainLayout.css';
 
 const { Header, Content, Footer, Sider } = Layout;
+const { Text } = Typography;
 
 // 定义侧边栏菜单项
 const items = [
     { key: '/', icon: <UserOutlined />, label: <Link to="/">首页</Link> },
-    { 
-        key: '/tools', 
-        icon: <ToolOutlined />, 
+    {
+        key: '/tools',
+        icon: <ToolOutlined />,
         label: '工具集',
         children: [
             { key: '/tools/base64', icon: <CodeOutlined />, label: <Link to="/tools/base64">Base64编解码</Link> },
@@ -38,9 +40,9 @@ const items = [
             { key: '/tools/password-generator', icon: <LockOutlined />, label: <Link to="/tools/password-generator">密码生成器</Link> },
         ]
     },
-    { 
-        key: '/ai', 
-        icon: <RobotOutlined />, 
+    {
+        key: '/ai',
+        icon: <RobotOutlined />,
         label: 'AI工具集',
         children: [
             { key: '/ai', icon: <RobotOutlined />, label: <Link to="/ai">AI工具总览</Link> },
@@ -58,6 +60,7 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
     const [collapsed, setCollapsed] = useState(false);
+    const [currentTime, setCurrentTime] = useState(new Date());
     const location = useLocation(); // 获取当前路由信息
 
     // 获取当前激活的菜单项
@@ -66,6 +69,33 @@ export default function MainLayout({ children }: MainLayoutProps) {
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
+
+    // 更新时间
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // 格式化时间
+    const formatTime = (date: Date) => {
+        return date.toLocaleTimeString('zh-CN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    };
+
+    // 获取问候语
+    const getGreeting = () => {
+        const hour = currentTime.getHours();
+        if (hour < 6) return '🌙 夜深了';
+        if (hour < 12) return '☀️ 早上好';
+        if (hour < 14) return '🌞 中午好';
+        if (hour < 18) return '🌅 下午好';
+        return '🌆 晚上好';
+    };
 
     return (
         <Layout className="main-layout" style={{ minHeight: '100vh' }}>
@@ -79,7 +109,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 {/* 新的 Logo 容器 */}
                 <div className={`logo-container ${collapsed ? 'collapsed' : ''}`}>
                     <img
-                        src="/vite.svg"
+                        src="/icon.png"
                         alt="App Logo"
                         className="logo-img"
                     />
@@ -102,13 +132,50 @@ export default function MainLayout({ children }: MainLayoutProps) {
             </Sider>
 
             <Layout className="main-content-layout">
-                {/* 顶部导航 */}
-                <Header 
+                {/* 顶部导航 - 新的互动头部 */}
+                <Header
                     className="main-header"
-                    style={{ background: colorBgContainer }}
+                    style={{
+                        background: colorBgContainer,
+                        padding: '0 24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        height: '64px',
+                        overflow: 'hidden'
+                    }}
                 >
-                    <div className="header-content">
-                        开发者工具集 - CF Tools
+                    {/* 左侧：品牌 */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        height: '100%'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            height: '100%'
+                        }}>
+                            <RocketOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                <Text strong style={{ fontSize: '18px', color: '#1890ff', lineHeight: '1.2' }}>CF-TOOLS</Text>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 右侧：问候语和时间 */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        height: '100%'
+                    }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end' }}>
+                            <Text style={{ fontSize: '12px', color: '#666', lineHeight: '1.2' }}>
+                                {getGreeting()} · {formatTime(currentTime)}
+                            </Text>
+                        </div>
                     </div>
                 </Header>
 

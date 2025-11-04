@@ -1,7 +1,6 @@
 import { Card, Row, Col, Button, Typography, Space, Statistic } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import {
-    ToolOutlined,
     CodeOutlined,
     LinkOutlined,
     ClockCircleOutlined,
@@ -181,19 +180,11 @@ function Home() {
     };
 
     return (
-        <div className="home-container" style={{ background: colorBgContainer, padding: '24px' }}>
-            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                <Title level={3} style={{ marginBottom: '8px' }}>
-                    <ToolOutlined style={{ marginRight: '12px' }} />
-                    开发者工具集
-                </Title>
-                <Paragraph style={{ fontSize: '16px', color: '#666', marginBottom: '16px' }}>
-                    一站式开发工具，提高你的工作效率
-                </Paragraph>
-
+        <div className="home-container" style={{ background: colorBgContainer, padding: '10px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '5px' }}>
                 {/* 网站总体统计信息 */}
                 {!statsLoading && (
-                    <div style={{ marginTop: '16px' }}>
+                    <div style={{ marginTop: '8px' }}>
                         <Space size="middle">
                             <Statistic
                                 title="总访问次数"
@@ -216,10 +207,10 @@ function Home() {
 
             {/* 开发者工具集区域 */}
             <div style={{
-                marginBottom: '32px',
-                padding: '16px',
+                marginBottom: '16px',
+                padding: '8px',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 boxShadow: '0 4px 16px rgba(102, 126, 234, 0.1)'
             }}>
                 <div style={{
@@ -250,10 +241,10 @@ function Home() {
 
             {/* AI工具集区域 */}
             <div style={{
-                marginBottom: '32px',
-                padding: '16px',
+                marginBottom: '16px',
+                padding: '8px',
                 background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 boxShadow: '0 4px 16px rgba(240, 147, 251, 0.1)'
             }}>
                 <div style={{
@@ -284,12 +275,6 @@ function Home() {
 
             <div style={{ textAlign: 'center', marginTop: '32px' }}>
                 <Space size="large">
-                    <Button type="primary" size="large" onClick={() => navigate('/tools/base64')}>
-                        开始使用 Base64 工具
-                    </Button>
-                    <Button type="default" size="large" onClick={() => navigate('/ai')}>
-                        探索 AI 工具
-                    </Button>
                     <Button size="large" onClick={() => navigate('/about')}>
                         关于项目
                     </Button>
