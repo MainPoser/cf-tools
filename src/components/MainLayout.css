@@ -140,6 +140,21 @@
   }
 }
 
+.avatar-expression {
+  transition: transform 0.2s ease-out;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* 浮动动画 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
 /* 头部时间显示样式 */
 .time-display {
   font-size: 12px;
