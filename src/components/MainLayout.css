@@ -1,166 +1,293 @@
-/* 主布局容器 */
+/* 主布局样式 */
 .main-layout {
   min-height: 100vh;
-  display: flex;
-  flex-direction: row;
-}
-
-/* 侧边栏样式 */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Logo容器样式 */
-.logo-container {
-  height: 32px;
-  margin: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.logo-container.collapsed {
-  justify-content: center;
-}
-
-/* Logo图片样式 */
-.logo-img {
-  height: 32px;
-  width: 32px;
-  margin-right: 8px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.logo-container.collapsed .logo-img {
-  margin-right: 0;
-}
-
-/* Logo文字样式 */
-.logo-text {
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  white-space: nowrap;
-}
-
-/* 菜单样式 */
-.sidebar-menu {
-  flex: 1;
-  border-right: 0;
-}
-
-/* 右侧布局容器 */
-.main-content-layout {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
 }
 
 /* 顶部导航栏样式 */
-.main-header {
-  padding: 0;
+.top-header {
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 0 24px;
+  height: 48px;
+}
+
+.header-left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-  height: 64px;
-  border-bottom: 1px solid #f0f0f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  flex: 0 0 auto;
 }
 
-/* 顶部导航左侧品牌区 */
-.main-header .ant-space {
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 800px;
+}
+
+.header-right {
+  display: flex;
   align-items: center;
+  flex: 0 0 auto;
 }
 
-/* 头部品牌信息容器 */
-.main-header .brand-section {
+/* 品牌区域 */
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  padding: 0 8px;
+}
+
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.brand-title {
+  font-size: 16px;
+  color: #1890ff;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.brand-subtitle {
+  font-size: 11px;
+  color: #666;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* 顶部菜单样式 */
+.top-menu {
+  background: transparent !important;
+  border: none !important;
+  line-height: 48px;
+}
+
+.top-menu .ant-menu-item {
+  height: 48px;
+  line-height: 48px;
+  border-bottom: none !important;
+  border-radius: 6px;
+  margin: 0 4px;
+  transition: all 0.3s ease;
+}
+
+.top-menu .ant-menu-item:hover {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.06);
+}
+
+.top-menu .ant-menu-item-selected {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+  border-bottom: none !important;
+}
+
+.top-menu .ant-menu-submenu {
+  height: 48px;
+  line-height: 48px;
+}
+
+.top-menu .ant-menu-submenu-title {
+  height: 48px;
+  line-height: 48px;
+  border-bottom: none !important;
+  padding: 0 20px !important;
+  border-radius: 6px;
+  margin: 0 4px;
+  transition: all 0.3s ease;
+}
+
+.top-menu .ant-menu-submenu:hover .ant-menu-submenu-title {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.06);
+  border-bottom: none !important;
+}
+
+.top-menu .ant-menu-submenu-open .ant-menu-submenu-title {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+  border-bottom: none !important;
+}
+
+/* 下拉菜单样式 */
+.top-menu .ant-menu-submenu-popup {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #f0f0f0;
+}
+
+.top-menu .ant-menu-submenu .ant-menu-sub {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 0;
+}
+
+.top-menu .ant-menu-submenu .ant-menu-item {
+  height: 40px;
+  line-height: 40px;
+  margin: 4px 8px;
+  border-radius: 6px;
+  border-bottom: none !important;
+  padding: 0 16px !important;
+}
+
+.top-menu .ant-menu-submenu .ant-menu-item:hover {
+  background: #f5f5f5;
+  color: #1890ff;
+}
+
+.top-menu .ant-menu-submenu .ant-menu-item-selected {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+/* 下拉箭头样式 */
+.top-menu .ant-menu-submenu-arrow {
+  color: inherit;
+  margin-left: 4px;
+  font-size: 10px;
+  transition: transform 0.3s ease;
+}
+
+.top-menu .ant-menu-submenu-open .ant-menu-submenu-arrow {
+  transform: rotate(180deg);
+}
+
+/* 右侧互动区域 */
+.interaction-section {
   display: flex;
   align-items: center;
   gap: 16px;
+  height: 100%;
+  padding: 0 8px;
 }
 
-/* 头部互动组件容器 */
-.main-header .interaction-section {
+.time-section {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-/* 内容区域样式 */
+.greeting-text {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.time-text {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* 可爱动漫头像样式 */
+.cute-avatar {
+  transition: box-shadow 0.3s ease;
+}
+
+.avatar-expression {
+  transition: transform 0.1s ease-out;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* 主内容区域 */
 .main-content {
-  margin: 24px 16px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  background: #f5f5f5;
 }
 
-/* 内容容器样式 */
 .content-container {
-  padding: 24px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  min-height: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* 页脚样式 */
 .main-footer {
   text-align: center;
-  flex-shrink: 0;
-  padding: 16px 24px;
-  border-top: 1px solid #f0f0f0;
+  background: #f0f2f5;
+  border-top: 1px solid #d9d9d9;
 }
 
 /* 响应式设计 */
+@media (max-width: 1200px) {
+  .header-center {
+    max-width: 600px;
+  }
+}
+
 @media (max-width: 768px) {
-  .main-header {
+  .top-header {
     padding: 0 16px;
   }
   
-  .main-header .brand-section {
-    gap: 8px;
+  .brand-subtitle {
+    display: none;
   }
   
-  .main-header .interaction-section .ant-space {
-    gap: 8px;
+  .header-center {
+    max-width: none;
+    flex: 1;
   }
   
-  .main-content {
-    margin: 16px 8px;
+  .top-menu {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .interaction-section {
+    gap: 12px;
   }
   
   .content-container {
+    margin: 16px;
     padding: 16px;
   }
 }
 
-.avatar-expression {
-  transition: transform 0.2s ease-out;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-/* 头部时间显示样式 */
-.time-display {
-  font-size: 12px;
-  color: #666;
-  margin-top: 2px;
-}
-
-/* 头部品牌名称样式 */
-.brand-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1890ff;
-}
-
-/* 头部问候语样式 */
-.greeting-text {
-  font-size: 12px;
-  color: #666;
+@media (max-width: 576px) {
+  .brand-title {
+    font-size: 14px;
+  }
+  
+  .time-section {
+    display: none;
+  }
+  
+  .content-container {
+    margin: 12px;
+    padding: 12px;
+  }
+  
+  .top-header {
+    height: 44px;
+  }
+  
+  .top-menu {
+    line-height: 44px;
+  }
+  
+  .top-menu .ant-menu-item,
+  .top-menu .ant-menu-submenu,
+  .top-menu .ant-menu-submenu-title {
+    height: 44px;
+    line-height: 44px;
+  }
 }

@@ -181,7 +181,7 @@ export default function AIToolsOverview() {
                                     </div>
                                 }
                                 placement="topLeft"
-                                overlayStyle={{ maxWidth: '400px' }}
+                                styles={{ root: { maxWidth: '400px' } }}
                             >
                                 <QuestionCircleOutlined style={{ marginLeft: '8px', color: '#1890ff', cursor: 'help' }} />
                             </Tooltip>
@@ -211,7 +211,7 @@ export default function AIToolsOverview() {
                                     </div>
                                 }
                                 placement="topLeft"
-                                overlayStyle={{ maxWidth: '450px' }}
+                                styles={{ root: { maxWidth: '450px' } }}
                             >
                                 <QuestionCircleOutlined style={{ marginLeft: '8px', color: '#1890ff', cursor: 'help' }} />
                             </Tooltip>

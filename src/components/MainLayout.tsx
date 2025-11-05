@@ -14,12 +14,12 @@ import {
     RobotOutlined,
     TranslationOutlined,
     EditOutlined,
-    RocketOutlined
+    DownOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 import './MainLayout.css';
 
-const { Header, Content, Footer, Sider } = Layout;
+const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
 
 // 可爱动漫头像组件
@@ -73,7 +73,7 @@ function CuteAvatar() {
 
         // 增大倾斜角度范围（-45度到45度）
         const rotate = Math.sin(angle) * 45;
-        
+
         // 增加位移效果
         const translateX = Math.cos(angle) * distance * 0.1;
         const translateY = Math.sin(angle) * distance * 0.1;
@@ -88,8 +88,8 @@ function CuteAvatar() {
             ref={avatarRef}
             className="cute-avatar"
             style={{
-                width: '50px',
-                height: '50px',
+                width: '40px',
+                height: '40px',
                 borderRadius: '50%',
                 background: 'linear-gradient(135deg, #ffd89b 0%, #19547b 100%)',
                 position: 'relative',
@@ -112,7 +112,7 @@ function CuteAvatar() {
             <div
                 className="avatar-expression"
                 style={{
-                    fontSize: '28px',
+                    fontSize: '22px',
                     transition: 'transform 0.1s ease-out',
                     transform: `rotate(${transform.rotate}deg) translate(${transform.translateX}px, ${transform.translateY}px)`,
                     display: 'inline-block',
@@ -125,13 +125,18 @@ function CuteAvatar() {
     );
 };
 
-// 定义侧边栏菜单项
-const items = [
+// 定义顶部菜单项
+const menuItems = [
     { key: '/', icon: <UserOutlined />, label: <Link to="/">首页</Link> },
     {
         key: '/tools',
         icon: <ToolOutlined />,
-        label: '工具集',
+        label: (
+            <span>
+                工具集
+                <DownOutlined style={{ fontSize: '12px', marginLeft: '4px' }} />
+            </span>
+        ),
         children: [
             { key: '/tools/base64', icon: <CodeOutlined />, label: <Link to="/tools/base64">Base64编解码</Link> },
             { key: '/tools/config-formatter', icon: <CodeOutlined />, label: <Link to="/tools/config-formatter">配置格式转换</Link> },
@@ -146,7 +151,12 @@ const items = [
     {
         key: '/ai',
         icon: <RobotOutlined />,
-        label: 'AI工具集',
+        label: (
+            <span>
+                AI工具集
+                <DownOutlined style={{ fontSize: '12px', marginLeft: '4px' }} />
+            </span>
+        ),
         children: [
             { key: '/ai', icon: <RobotOutlined />, label: <Link to="/ai">AI工具总览</Link> },
             { key: '/ai/text-generation', icon: <EditOutlined />, label: <Link to="/ai/text-generation">AI文本生成</Link> },
@@ -157,17 +167,17 @@ const items = [
     { key: '/about', icon: <PictureOutlined />, label: <Link to="/about">关于</Link> },
 ];
 
+
 interface MainLayoutProps {
     children: React.ReactNode;
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
-    const [collapsed, setCollapsed] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
     const location = useLocation(); // 获取当前路由信息
 
     // 获取当前激活的菜单项
-    const selectedKey = location.pathname;
+    const selectedKeys = [location.pathname];
 
     const {
         token: { colorBgContainer, borderRadiusLG },
@@ -202,106 +212,91 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
     return (
         <Layout className="main-layout" style={{ minHeight: '100vh' }}>
-            {/* 侧边栏 */}
-            <Sider
-                className="sidebar"
-                collapsible
-                collapsed={collapsed}
-                onCollapse={(value) => setCollapsed(value)}
+            {/* 顶部导航栏 */}
+            <Header
+                className="top-header"
+                style={{
+                    background: colorBgContainer,
+                    padding: '0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    height: '48px',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1000
+                }}
             >
-                {/* 新的 Logo 容器 */}
-                <div className={`logo-container ${collapsed ? 'collapsed' : ''}`}>
-                    <img
-                        src="/icon.png"
-                        alt="App Logo"
-                        className="logo-img"
-                    />
-
-                    {/* 只有在侧边栏展开时才显示文字 */}
-                    {!collapsed && (
-                        <span className="logo-text">
-                            CF-TOOLS
-                        </span>
-                    )}
-                </div>
-                <Menu
-                    className="sidebar-menu"
-                    theme="dark"
-                    defaultSelectedKeys={[selectedKey]}
-                    selectedKeys={[selectedKey]} // 确保菜单与路由同步
-                    mode="inline"
-                    items={items}
-                />
-            </Sider>
-
-            <Layout className="main-content-layout">
-                {/* 顶部导航 - 新的互动头部 */}
-                <Header
-                    className="main-header"
-                    style={{
-                        background: colorBgContainer,
-                        padding: '0 24px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        height: '64px',
-                        overflow: 'hidden'
-                    }}
-                >
-                    {/* 左侧：品牌 */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        height: '100%'
-                    }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            height: '100%'
-                        }}>
-                            <RocketOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                <Text strong style={{ fontSize: '18px', color: '#1890ff', lineHeight: '1.2' }}>CF-TOOLS</Text>
-                            </div>
+                {/* 左侧：Logo 和品牌 */}
+                <div className="header-left">
+                    <div className="brand-section">
+                        <img
+                            src="/icon.png"
+                            alt="App Logo"
+                            className="brand-logo"
+                        />
+                        <div className="brand-info">
+                            <Text strong className="brand-title">CF-TOOLS</Text>
+                            <Text className="brand-subtitle">实用工具集合</Text>
                         </div>
                     </div>
-                    {/* 可爱动漫头像 */}
-                    <CuteAvatar />
-                    {/* 右侧：问候语和时间 */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        height: '100%'
-                    }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end' }}>
-                            <Text style={{ fontSize: '12px', color: '#666', lineHeight: '1.2' }}>
-                                {getGreeting()} · {formatTime(currentTime)}
+                </div>
+
+                {/* 中间：导航菜单 */}
+                <div className="header-center">
+                    <Menu
+                        className="top-menu"
+                        mode="horizontal"
+                        selectedKeys={selectedKeys}
+                        items={menuItems}
+                        style={{
+                            border: 'none',
+                            background: 'transparent'
+                        }}
+                    />
+                </div>
+
+                {/* 右侧：头像和时间信息 */}
+                <div className="header-right">
+                    <div className="interaction-section">
+                        {/* 可爱动漫头像 */}
+                        <CuteAvatar />
+
+                        {/* 问候语和时间 */}
+                        <div className="time-section">
+                            <Text className="greeting-text">
+                                {getGreeting()}
+                            </Text>
+                            <Text className="time-text">
+                                {formatTime(currentTime)}
                             </Text>
                         </div>
                     </div>
-                </Header>
+                </div>
+            </Header>
 
-                {/* 主内容区域 */}
-                <Content className="main-content">
-                    <div
-                        className="content-container"
-                        style={{
-                            background: colorBgContainer,
-                            borderRadius: borderRadiusLG,
-                        }}
-                    >
-                        {/* 路由页面内容将显示在这里 */}
-                        {children}
-                    </div>
-                </Content>
+            {/* 主内容区域 */}
+            <Content className="main-content">
+                <div
+                    className="content-container"
+                    style={{
+                        background: colorBgContainer,
+                        borderRadius: borderRadiusLG,
+                        margin: '24px',
+                        padding: '24px',
+                        minHeight: 'calc(100vh - 48px - 70px)'
+                    }}
+                >
+                    {/* 路由页面内容将显示在这里 */}
+                    {children}
+                </div>
+            </Content>
 
-                {/* 页脚 */}
-                <Footer className="main-footer">
-                    Cloudflare App Created with Ant Design ©{new Date().getFullYear()}
-                </Footer>
-            </Layout>
+            {/* 页脚 */}
+            <Footer className="main-footer">
+                Cloudflare App Created with Ant Design ©{new Date().getFullYear()}
+            </Footer>
         </Layout>
     );
 }
