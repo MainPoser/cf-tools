@@ -110,6 +110,19 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
     return (
         <Layout className="main-layout" style={{ minHeight: '100vh' }}>
+            {/* GitHub 横幅 */}
+            <div className="github-banner">
+                <span className="banner-text">
+                    喜欢这个项目吗？到 <a 
+                        href="https://github.com/MainPoser/cf-tools" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="github-link"
+                    >
+                        GitHub
+                    </a> 给我们点个 ⭐ 支持一下吧！
+                </span>
+            </div>
             {/* 顶部导航栏 */}
             <Header
                 className="top-header"

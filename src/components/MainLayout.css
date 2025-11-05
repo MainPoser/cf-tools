@@ -3,6 +3,35 @@
   min-height: 100vh;
 }
 
+/* GitHub 横幅样式 */
+.github-banner {
+  background: linear-gradient(90deg, #0969da 0%, #0550ae 100%);
+  color: white;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 13px;
+  position: relative;
+  z-index: 1001;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.banner-text {
+  display: inline-block;
+}
+
+.github-link {
+  color: #58a6ff;
+  text-decoration: none;
+  font-weight: 500;
+  margin: 0 4px;
+  transition: color 0.2s ease;
+}
+
+.github-link:hover {
+  color: #79c0ff;
+  text-decoration: underline;
+}
+
 /* 顶部导航栏样式 */
 .top-header {
   background: #fff !important;
