@@ -1,3 +1,15 @@
+/*
+ * File: MainLayout.tsx
+ * Project: cf-tools
+ * File Created: Thursday, 6th November 2025 8:00:28 am
+ * Author: tianyao (ty18710388929@163.com)
+ * -----
+ * Last Modified: Thursday, 6th November 2025 8:03:35 am
+ * Modified By: tianyao (ty18710388929@163.com>)
+ * -----
+ * Copyright <<projectCreationYear>> - 2025 tianyao, tianyao
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, theme, Typography } from 'antd';
 import {
@@ -194,7 +206,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
                     style={{
                         background: colorBgContainer,
                         borderRadius: borderRadiusLG,
-                        margin: '24px',
                         padding: '24px',
                         minHeight: 'calc(100vh - 48px - 70px)'
                     }}
