@@ -14,6 +14,7 @@ import QRCodeGenerator from './pages/tools/QRCodeGenerator';
 import ColorPicker from './pages/tools/ColorPicker';
 import Markdown from './pages/tools/Markdown';
 import PasswordGenerator from './pages/tools/PasswordGenerator';
+import IPCalculator from './pages/tools/ipcalculator/IPCalculator';
 
 // 导入AI页面
 import AIToolsOverview from './pages/ai/AIToolsOverview';
@@ -43,6 +44,7 @@ function App() {
           <Route path="/tools/color-picker" element={<ColorPicker />} />
           <Route path="/tools/markdown" element={<Markdown />} />
           <Route path="/tools/password-generator" element={<PasswordGenerator />} />
+          <Route path="/tools/ip-calculator" element={<IPCalculator />} />
 
           {/* AI工具页面路由 */}
           <Route path="/ai" element={<AIToolsOverview />} />

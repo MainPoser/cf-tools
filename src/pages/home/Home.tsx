@@ -14,7 +14,8 @@ import {
     PictureOutlined,
     TranslationOutlined,
     ApiOutlined,
-    ThunderboltOutlined
+    ThunderboltOutlined,
+    CalculatorOutlined
 } from '@ant-design/icons';
 import { theme } from 'antd';
 import { useSiteStats } from '../../hooks/useAnalytics';
@@ -83,6 +84,13 @@ function Home() {
             description: '生成安全的随机密码',
             icon: <LockOutlined style={{ fontSize: '24px', color: '#f5222d' }} />,
             path: '/tools/password-generator',
+            available: true
+        },
+        {
+            title: 'IP计算器',
+            description: '网络IP地址和子网掩码计算工具',
+            icon: <CalculatorOutlined style={{ fontSize: '24px', color: '#1890ff' }} />,
+            path: '/tools/ip-calculator',
             available: true
         }
     ];

@@ -4,7 +4,7 @@
  * File Created: Thursday, 6th November 2025 8:00:28 am
  * Author: tianyao (ty18710388929@163.com)
  * -----
- * Last Modified: Thursday, 6th November 2025 8:03:35 am
+ * Last Modified: Thursday, 6th November 2025 1:46:53 pm
  * Modified By: tianyao (ty18710388929@163.com>)
  * -----
  * Copyright <<projectCreationYear>> - 2025 tianyao, tianyao
@@ -56,6 +56,7 @@ const menuItems = [
             { key: '/tools/color-picker', icon: <BgColorsOutlined />, label: <Link to="/tools/color-picker">颜色选择器</Link> },
             { key: '/tools/markdown', icon: <FileTextOutlined />, label: <Link to="/tools/markdown">Markdown预览</Link> },
             { key: '/tools/password-generator', icon: <LockOutlined />, label: <Link to="/tools/password-generator">密码生成器</Link> },
+            { key: '/tools/ip-calculator', icon: <CodeOutlined />, label: <Link to="/tools/ip-calculator">IP计算器</Link> },
         ]
     },
     {
