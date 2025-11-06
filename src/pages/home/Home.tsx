@@ -1,4 +1,4 @@
-import { Card, Row, Col, Button, Typography, Space, Statistic } from 'antd';
+import { Card, Row, Col, Typography, Space, Statistic } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import {
     CodeOutlined,
@@ -131,15 +131,16 @@ function Home() {
     const renderToolCard = (tool: any, index: number) => {
         const toolStats = getToolStats(tool.title);
         return (
-            <Col xs={24} sm={12} md={8} lg={6} key={index}>
+            <Col xs={24} sm={12} md={8} lg={6} xl={4} xxl={3} key={index}>
                 <Card
                     hoverable={tool.available}
                     style={{
-                        height: '160px',
+                        height: '150px',
                         textAlign: 'center',
                         opacity: tool.available ? 1 : 0.6,
                         cursor: tool.available ? 'pointer' : 'not-allowed',
-                        transition: 'all 0.3s ease'
+                        transition: 'all 0.3s ease',
+                        maxWidth: '280px'
                     }}
                     styles={{
                         body: {
@@ -180,7 +181,7 @@ function Home() {
     };
 
     return (
-        <div className="home-container" style={{ background: colorBgContainer, padding: '10px' }}>
+        <div className="home-container" style={{ background: colorBgContainer }}>
             <div style={{ textAlign: 'center', marginBottom: '5px' }}>
                 {/* 网站总体统计信息 */}
                 {!statsLoading && (
@@ -206,32 +207,48 @@ function Home() {
             </div>
 
             {/* 开发者工具集区域 */}
-            <div style={{
-                marginBottom: '16px',
-                padding: '8px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '8px',
-                boxShadow: '0 4px 16px rgba(102, 126, 234, 0.1)'
-            }}>
+            <div style={{ marginBottom: '24px', width: '100%' }}>
                 <div style={{
-                    textAlign: 'center',
-                    marginBottom: '20px',
-                    color: 'white'
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '16px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    width: '100%'
                 }}>
-                    <Title level={2} style={{ color: 'white', marginBottom: '4px', fontSize: '20px' }}>
+                    <Title level={2} style={{
+                        color: 'white',
+                        margin: 0,
+                        fontSize: '20px',
+                        display: 'flex',
+                        alignItems: 'center'
+                    }}>
                         <ApiOutlined style={{ marginRight: '8px' }} />
                         开发者工具
                     </Title>
-                    <Paragraph style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '14px', marginBottom: 0 }}>
+                    <Paragraph style={{
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: '14px',
+                        margin: '0 0 0 16px',
+                        flex: 1
+                    }}>
                         实用开发工具，提升编程效率
                     </Paragraph>
                 </div>
 
                 <div style={{
+                    borderBottom: '2px solid #e8e8e8',
+                    marginBottom: '16px',
+                    width: '100%'
+                }} />
+
+                <div style={{
                     background: 'white',
                     borderRadius: '8px',
                     padding: '16px',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                    width: '100%'
                 }}>
                     <Row gutter={[16, 16]}>
                         {devTools.map((tool, index) => renderToolCard(tool, index))}
@@ -240,45 +257,53 @@ function Home() {
             </div>
 
             {/* AI工具集区域 */}
-            <div style={{
-                marginBottom: '16px',
-                padding: '8px',
-                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                borderRadius: '8px',
-                boxShadow: '0 4px 16px rgba(240, 147, 251, 0.1)'
-            }}>
+            <div style={{ marginBottom: '24px', width: '100%' }}>
                 <div style={{
-                    textAlign: 'center',
-                    marginBottom: '20px',
-                    color: 'white'
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '16px',
+                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    width: '100%'
                 }}>
-                    <Title level={2} style={{ color: 'white', marginBottom: '4px', fontSize: '20px' }}>
+                    <Title level={2} style={{
+                        color: 'white',
+                        margin: 0,
+                        fontSize: '20px',
+                        display: 'flex',
+                        alignItems: 'center'
+                    }}>
                         <ThunderboltOutlined style={{ marginRight: '8px' }} />
                         AI 智能工具
                     </Title>
-                    <Paragraph style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '14px', marginBottom: 0 }}>
+                    <Paragraph style={{
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: '14px',
+                        margin: '0 0 0 16px',
+                        flex: 1
+                    }}>
                         人工智能赋能，创意无限可能
                     </Paragraph>
                 </div>
 
                 <div style={{
+                    borderBottom: '2px solid #e8e8e8',
+                    marginBottom: '16px',
+                    width: '100%'
+                }} />
+
+                <div style={{
                     background: 'white',
                     borderRadius: '8px',
                     padding: '16px',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                    width: '100%'
                 }}>
                     <Row gutter={[16, 16]}>
                         {aiTools.map((tool, index) => renderToolCard(tool, index))}
                     </Row>
                 </div>
-            </div>
-
-            <div style={{ textAlign: 'center', marginTop: '32px' }}>
-                <Space size="large">
-                    <Button size="large" onClick={() => navigate('/about')}>
-                        关于项目
-                    </Button>
-                </Space>
             </div>
         </div>
     )

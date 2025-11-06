@@ -7,6 +7,8 @@
   justify-content: flex-start;
   min-height: 100%;
   gap: 2rem;
+  padding: '10px';
+  width: '100%';
 }
 
 /* Logo区域样式 */
@@ -68,7 +70,8 @@
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
-  flex-shrink: 0; /* 防止logo在flex布局中收缩 */
+  flex-shrink: 0;
+  /* 防止logo在flex布局中收缩 */
 }
 
 .logo:hover {
@@ -87,6 +90,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
