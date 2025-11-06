@@ -6,6 +6,7 @@
 - 后端：Hono（运行在 Cloudflare Workers）
 - 部署：Cloudflare Workers（使用 Wrangler）
 - 存储：Cloudflare KV（用于访问统计）
+- 演示地址：[https://cf-tools.tianyao.qzz.io/](https://cf-tools.tianyao.qzz.io/)
 
 ## 目录
 
