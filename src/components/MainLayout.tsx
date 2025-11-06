@@ -4,14 +4,14 @@
  * File Created: Thursday, 6th November 2025 8:00:28 am
  * Author: tianyao (ty18710388929@163.com)
  * -----
- * Last Modified: Thursday, 6th November 2025 1:46:53 pm
+ * Last Modified: Thursday, 6th November 2025 8:09:19 pm
  * Modified By: tianyao (ty18710388929@163.com>)
  * -----
  * Copyright <<projectCreationYear>> - 2025 tianyao, tianyao
  */
 
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, theme, Typography } from 'antd';
+import { Layout, Menu, theme, Typography, Button, Drawer } from 'antd';
 import {
     UserOutlined,
     PictureOutlined,
@@ -27,6 +27,7 @@ import {
     TranslationOutlined,
     EditOutlined,
     DownOutlined,
+    MenuOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 import CuteAvatar from './CuteAvatar';
@@ -85,10 +86,24 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const location = useLocation(); // 获取当前路由信息
 
     // 获取当前激活的菜单项
     const selectedKeys = [location.pathname];
+
+    // 检测屏幕尺寸
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const {
         token: { colorBgContainer, borderRadiusLG },
@@ -120,15 +135,36 @@ export default function MainLayout({ children }: MainLayoutProps) {
         if (hour < 18) return '🌅 下午好';
         return '🌆 晚上好';
     };
+    // 处理移动端菜单点击
+    const handleMobileMenuClick = () => {
+        setMobileMenuVisible(false);
+    };
+
+    // 移动端菜单项（转换为垂直模式）
+    const mobileMenuItems = menuItems.map(item => {
+        if (item.children) {
+            return {
+                ...item,
+                children: item.children?.map(child => ({
+                    ...child,
+                    label: React.cloneElement(child.label, { onClick: handleMobileMenuClick })
+                }))
+            };
+        }
+        return {
+            ...item,
+            label: React.cloneElement(item.label, { onClick: handleMobileMenuClick })
+        };
+    });
 
     return (
         <Layout className="main-layout" style={{ minHeight: '100vh' }}>
             {/* GitHub 横幅 */}
             <div className="github-banner">
                 <span className="banner-text">
-                    喜欢这个项目吗？到 <a 
-                        href="https://github.com/MainPoser/cf-tools" 
-                        target="_blank" 
+                    喜欢这个项目吗？到 <a
+                        href="https://github.com/MainPoser/cf-tools"
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="github-link"
                     >
@@ -167,38 +203,82 @@ export default function MainLayout({ children }: MainLayoutProps) {
                     </div>
                 </div>
 
-                {/* 中间：导航菜单 */}
-                <div className="header-center">
-                    <Menu
-                        className="top-menu"
-                        mode="horizontal"
-                        selectedKeys={selectedKeys}
-                        items={menuItems}
-                        style={{
-                            border: 'none',
-                            background: 'transparent'
-                        }}
-                    />
-                </div>
+                {/* 中间：导航菜单 - 桌面端显示 */}
+                {!isMobile && (
+                    <div className="header-center">
+                        <Menu
+                            className="top-menu"
+                            mode="horizontal"
+                            selectedKeys={selectedKeys}
+                            items={menuItems}
+                            style={{
+                                border: 'none',
+                                background: 'transparent'
+                            }}
+                        />
+                    </div>
+                )}
 
-                {/* 右侧：头像和时间信息 */}
+                {/* 右侧：移动端菜单按钮和头像 */}
                 <div className="header-right">
                     <div className="interaction-section">
-                        {/* 可爱动漫头像 */}
-                        <CuteAvatar />
+                        {/* 移动端菜单按钮 */}
+                        {isMobile && (
+                            <Button
+                                type="text"
+                                icon={<MenuOutlined />}
+                                onClick={() => setMobileMenuVisible(true)}
+                                className="mobile-menu-button"
+                                style={{
+                                    border: 'none',
+                                    fontSize: '16px',
+                                    height: '32px',
+                                    width: '32px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            />
+                        )}
 
-                        {/* 问候语和时间 */}
-                        <div className="time-section">
-                            <Text className="greeting-text">
-                                {getGreeting()}
-                            </Text>
-                            <Text className="time-text">
-                                {formatTime(currentTime)}
-                            </Text>
-                        </div>
+                        {/* 可爱动漫头像 */}
+                        <CuteAvatar className={isMobile ? 'mobile-avatar' : ''} />
+
+                        {/* 问候语和时间 - 仅桌面端显示 */}
+                        {!isMobile && (
+                            <div className="time-section">
+                                <Text className="greeting-text">
+                                    {getGreeting()}
+                                </Text>
+                                <Text className="time-text">
+                                    {formatTime(currentTime)}
+                                </Text>
+                            </div>
+                        )}
                     </div>
                 </div>
             </Header>
+
+            {/* 移动端侧边抽屉菜单 */}
+            <Drawer
+                title="导航菜单"
+                placement="right"
+                onClose={() => setMobileMenuVisible(false)}
+                open={mobileMenuVisible}
+                width={280}
+                bodyStyle={{ padding: 0 }}
+                className="mobile-drawer"
+            >
+                <Menu
+                    mode="vertical"
+                    selectedKeys={selectedKeys}
+                    items={mobileMenuItems}
+                    style={{
+                        border: 'none',
+                        height: '100%'
+                    }}
+                />
+            </Drawer>
 
             {/* 主内容区域 */}
             <Content className="main-content">

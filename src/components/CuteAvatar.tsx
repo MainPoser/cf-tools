@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import './CuteAvatar.css';
 
+// 定义组件属性接口
+interface CuteAvatarProps {
+    className?: string;
+}
+
 // 可爱动漫头像组件
-export default function CuteAvatar() {
+export default function CuteAvatar({ className = '' }: CuteAvatarProps) {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [expression, setExpression] = useState('😊');
     const avatarRef = useRef<HTMLDivElement>(null);
@@ -62,10 +67,13 @@ export default function CuteAvatar() {
 
     const transform = calculateExpressionTransform();
 
+    // 合并 className
+    const avatarClassName = `cute-avatar ${className}`.trim();
+
     return (
         <div
             ref={avatarRef}
-            className="cute-avatar"
+            className={avatarClassName}
             style={{
                 width: '40px',
                 height: '40px',

@@ -252,84 +252,155 @@
   background: #f0f2f5;
   border-top: 1px solid #d9d9d9;
 }
+/* 移动端菜单按钮 */
+.mobile-menu-button {
+    display: none !important;
+}
+
+.mobile-avatar {
+    width: 28px !important;
+    height: 28px !important;
+}
+
+/* 移动端抽屉样式 */
+.mobile-drawer .ant-drawer-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.mobile-drawer .ant-drawer-body {
+    padding: 0;
+}
+
+.mobile-drawer .ant-menu {
+    border: none;
+}
+
+.mobile-drawer .ant-menu-item {
+    height: 48px;
+    line-height: 48px;
+    margin: 0;
+    border-radius: 0;
+}
+
+.mobile-drawer .ant-menu-submenu {
+    border-radius: 0;
+}
+
+.mobile-drawer .ant-menu-submenu-title {
+    height: 48px;
+    line-height: 48px;
+    margin: 0;
+    border-radius: 0;
+}
+
+.mobile-drawer .ant-menu-sub {
+    background: #fafafa;
+}
+
+.mobile-drawer .ant-menu-submenu .ant-menu-item {
+    height: 40px;
+    line-height: 40px;
+    padding-left: 48px !important;
+}
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
-  .header-center {
-    max-width: 600px;
-  }
+    .header-center {
+        max-width: 600px;
+    }
 }
 
 @media (max-width: 768px) {
-  .header-left {
-    padding-left: 16px;
-  }
-  
-  .header-center {
-    max-width: none;
-    flex: 1;
-    padding: 0 16px;
-  }
-  
-  .header-right {
-    padding-right: 16px;
-  }
-  
-  .brand-subtitle {
-    display: none;
-  }
-  
-  .top-menu {
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  
-  .interaction-section {
-    gap: 12px;
-  }
-  
-  .content-container {
-    padding: 16px;
-  }
+    .mobile-menu-button {
+        display: flex !important;
+    }
+    
+    .header-left {
+        padding-left: 16px;
+        flex: 1;
+    }
+    
+    .header-center {
+        display: none;
+    }
+    
+    .header-right {
+        padding-right: 16px;
+        flex: 0 0 auto;
+    }
+    
+    .brand-subtitle {
+        display: none;
+    }
+    
+    .interaction-section {
+        gap: 8px;
+    }
+    
+    .content-container {
+        padding: 16px;
+        margin: 0 8px;
+    }
+    
+    .github-banner {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
 }
 
 @media (max-width: 576px) {
-  .header-left {
-    padding-left: 12px;
-  }
-  
-  .header-center {
-    padding: 0 12px;
-  }
-  
-  .header-right {
-    padding-right: 12px;
-  }
-  
-  .brand-title {
-    font-size: 14px;
-  }
-  
-  .time-section {
-    display: none;
-  }
-  
-  .content-container {
-    padding: 12px;
-  }
-  
-  .top-header {
-    height: 44px;
-  }
-  
-  .top-menu {
-    line-height: 44px;
-  }
-  
-  .top-menu .ant-menu-item,
-  .top-menu .ant-menu-submenu,
-  .top-menu .ant-menu-submenu-title {
-    height: 44px;
-    line-height: 44px;
-  }
+    .header-left {
+        padding-left: 12px;
+    }
+    
+    .header-right {
+        padding-right: 12px;
+    }
+    
+    .brand-title {
+        font-size: 14px;
+    }
+    
+    .brand-logo {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .content-container {
+        padding: 12px;
+        margin: 0 4px;
+    }
+    
+    .top-header {
+        height: 44px;
+    }
+    
+    .github-banner {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+    
+    .mobile-drawer {
+        width: 260px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .brand-info {
+        display: none;
+    }
+    
+    .header-left {
+        padding-left: 8px;
+    }
+    
+    .header-right {
+        padding-right: 8px;
+    }
+    
+    .content-container {
+        padding: 8px;
+        margin: 0 2px;
+    }
 }
