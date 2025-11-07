@@ -98,8 +98,7 @@ export default function NetworkNodeCalculator() {
         <Card
             title="网络/节点计算器"
             size="small"
-            headStyle={{ background: '#fff7e6', fontSize: '14px' }}
-            bodyStyle={{ padding: '12px' }}
+            styles={{header: { background: '#fff7e6', fontSize: '14px' },body: { padding: '12px' }}}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="small">
                 {/* 子网掩码输入 */}
@@ -191,32 +190,32 @@ export default function NetworkNodeCalculator() {
                         <Row gutter={[8, 8]}>
                             <Col span={24}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>网络地址</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>网络地址</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>
                                         {result.networkAddress.join('.')}
                                     </Text>
                                 </div>
                             </Col>
                             <Col span={24}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>节点/主机地址</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>节点/主机地址</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>
                                         {result.hostAddress.join('.')}
                                     </Text>
                                 </div>
                             </Col>
                             <Col span={24}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>广播地址</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>广播地址</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>
                                         {result.broadcastAddress.join('.')}
                                     </Text>
                                 </div>
                             </Col>
                             <Col span={12}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>CIDR</Text>
-                                    <Text code style={{ fontSize: '10px' }}>/{result.cidr}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>CIDR</Text>
+                                    <Text code style={{ fontSize: '12px' }}>/{result.cidr}</Text>
                                 </div>
                             </Col>
                         </Row>

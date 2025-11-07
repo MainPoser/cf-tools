@@ -13,11 +13,10 @@ export default function WildcardMaskConverter() {
     }, [wildcardMask]);
 
     return (
-        <Card 
-            title="子网掩码逆算" 
+        <Card
+            title="子网掩码逆算"
             size="small"
-            headStyle={{ background: '#f6ffed', fontSize: '14px' }}
-            bodyStyle={{ padding: '12px' }}
+            styles={{ header: { background: '#f6ffed', fontSize: '14px' }, body: { padding: '12px' } }}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="small">
                 <div>
@@ -35,14 +34,14 @@ export default function WildcardMaskConverter() {
                 <Row gutter={[8, 8]}>
                     <Col span={12}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>反掩码</Text>
-                            <Text code copyable style={{ fontSize: '10px' }}>{wildcardMask}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>反掩码</Text>
+                            <Text code copyable style={{ fontSize: '12px' }}>{wildcardMask}</Text>
                         </div>
                     </Col>
                     <Col span={12}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>子网掩码</Text>
-                            <Text code copyable style={{ fontSize: '10px' }}>{maskFromWildcard}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>子网掩码</Text>
+                            <Text code copyable style={{ fontSize: '12px' }}>{maskFromWildcard}</Text>
                         </div>
                     </Col>
                 </Row>

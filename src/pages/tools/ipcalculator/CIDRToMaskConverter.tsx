@@ -62,8 +62,7 @@ export default function CIDRToMaskConverter() {
         <Card 
             title="通过掩码位元数计算子网掩码" 
             size="small"
-            headStyle={{ background: '#f6ffed', fontSize: '14px' }}
-            bodyStyle={{ padding: '12px' }}
+            styles={{header: { background: '#f6ffed', fontSize: '14px' },body: { padding: '12px' }}}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="small">
                 <div>
@@ -82,38 +81,38 @@ export default function CIDRToMaskConverter() {
                 <Row gutter={[8, 8]}>
                     <Col span={12}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>CIDR表示法</Text>
-                            <Text code copyable style={{ fontSize: '10px' }}>/{cidrBits}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>CIDR表示法</Text>
+                            <Text code copyable style={{ fontSize: '12px' }}>/{cidrBits}</Text>
                         </div>
                     </Col>
                     <Col span={12}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>子网掩码</Text>
-                            <Text code copyable style={{ fontSize: '10px' }}>{maskFromBits}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>子网掩码</Text>
+                            <Text code copyable style={{ fontSize: '12px' }}>{maskFromBits}</Text>
                         </div>
                     </Col>
                     <Col span={12}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>十进制掩码</Text>
-                            <Text code copyable style={{ fontSize: '10px' }}>{decimalMask}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>十进制掩码</Text>
+                            <Text code copyable style={{ fontSize: '12px' }}>{decimalMask}</Text>
                         </div>
                     </Col>
                     <Col span={12}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>十六进制掩码</Text>
-                            <Text code copyable style={{ fontSize: '10px' }}>{hexMask}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>十六进制掩码</Text>
+                            <Text code copyable style={{ fontSize: '12px' }}>{hexMask}</Text>
                         </div>
                     </Col>
                     <Col span={12}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>地址总数</Text>
-                            <Text code style={{ fontSize: '10px' }}>{formatNumber(totalAddresses)}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>地址总数</Text>
+                            <Text code style={{ fontSize: '12px' }}>{formatNumber(totalAddresses)}</Text>
                         </div>
                     </Col>
                     <Col span={12}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>可用地址数</Text>
-                            <Text code style={{ fontSize: '10px' }}>{formatNumber(usableAddresses)}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>可用地址数</Text>
+                            <Text code style={{ fontSize: '12px' }}>{formatNumber(usableAddresses)}</Text>
                         </div>
                     </Col>
                 </Row>

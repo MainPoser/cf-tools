@@ -25,8 +25,7 @@ export default function HostCountToMaskConverter() {
         <Card 
             title="通过主机数量计算子网掩码" 
             size="small"
-            headStyle={{ background: '#f6ffed', fontSize: '14px' }}
-            bodyStyle={{ padding: '12px' }}
+            styles={{header: { background: '#f6ffed', fontSize: '14px' },body: { padding: '12px' }}}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="small">
                 <div>
@@ -47,20 +46,20 @@ export default function HostCountToMaskConverter() {
                 <Row gutter={[8, 8]}>
                     <Col span={8}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>掩码位数</Text>
-                            <Text code style={{ fontSize: '10px' }}>{cidrBits}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>掩码位数</Text>
+                            <Text code style={{ fontSize: '12px' }}>{cidrBits}</Text>
                         </div>
                     </Col>
                     <Col span={8}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>子网掩码</Text>
-                            <Text code copyable style={{ fontSize: '10px' }}>{maskFromHosts}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>子网掩码</Text>
+                            <Text code copyable style={{ fontSize: '12px' }}>{maskFromHosts}</Text>
                         </div>
                     </Col>
                     <Col span={8}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                            <Text strong style={{ fontSize: '11px', color: '#666' }}>可用地址数</Text>
-                            <Text code style={{ fontSize: '10px' }}>{usableHosts}</Text>
+                            <Text strong style={{ fontSize: '12px', color: '#666' }}>可用地址数</Text>
+                            <Text code style={{ fontSize: '12px' }}>{usableHosts}</Text>
                         </div>
                     </Col>
                 </Row>

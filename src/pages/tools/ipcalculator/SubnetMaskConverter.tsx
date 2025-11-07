@@ -90,8 +90,7 @@ export default function SubnetMaskConverter() {
         <Card 
             title="子网掩码换算器" 
             size="small"
-            headStyle={{ background: '#f6ffed', fontSize: '14px' }}
-            bodyStyle={{ padding: '12px' }}
+            styles={{header: { background: '#f6ffed', fontSize: '14px' },body: { padding: '12px' }}}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="small">
                 {/* 十进制子网掩码输入区域 */}

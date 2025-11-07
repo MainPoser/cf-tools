@@ -56,8 +56,7 @@ export default function NetworkCalculator() {
         <Card 
             title="网络和IP地址计算器" 
             size="small"
-            headStyle={{ background: '#e6f7ff', fontSize: '14px' }}
-            bodyStyle={{ padding: '12px' }}
+            styles={{header: { background: '#e6f7ff', fontSize: '14px' },body: { padding: '12px' }}}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="small">
                 <div>
@@ -112,38 +111,38 @@ export default function NetworkCalculator() {
                         <Row gutter={[6, 6]}>
                             <Col xs={12} sm={8}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>可用地址</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>{networkResult.usableHosts}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>可用地址</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>{networkResult.usableHosts}</Text>
                                 </div>
                             </Col>
                             <Col xs={12} sm={8}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>掩码</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>{networkMask}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>掩码</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>{networkMask}</Text>
                                 </div>
                             </Col>
                             <Col xs={12} sm={8}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>网络</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>{networkResult.network}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>网络</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>{networkResult.network}</Text>
                                 </div>
                             </Col>
                             <Col xs={12} sm={8}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>第一个可用</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>{networkResult.firstHost}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>第一个可用</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>{networkResult.firstHost}</Text>
                                 </div>
                             </Col>
                             <Col xs={12} sm={8}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>最后可用</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>{networkResult.lastHost}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>最后可用</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>{networkResult.lastHost}</Text>
                                 </div>
                             </Col>
                             <Col xs={12} sm={8}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>广播</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>{networkResult.broadcast}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>广播</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>{networkResult.broadcast}</Text>
                                 </div>
                             </Col>
                         </Row>

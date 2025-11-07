@@ -225,8 +225,7 @@ export default function SubnetMaskCalculator() {
         <Card
             title="子网掩码计算器"
             size="small"
-            headStyle={{ background: '#fff7e6', fontSize: '14px' }}
-            bodyStyle={{ padding: '12px' }}
+            styles={{header: { background: '#fff7e6', fontSize: '14px' },body: { padding: '12px' }}}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="small">
                 {/* IP地址输入 */}
@@ -329,38 +328,38 @@ export default function SubnetMaskCalculator() {
                         <Row gutter={[8, 8]}>
                             <Col span={12}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>网络类型</Text>
-                                    <Text style={{ fontSize: '10px' }}>{result.networkType}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>网络类型</Text>
+                                    <Text style={{ fontSize: '12px' }}>{result.networkType}</Text>
                                 </div>
                             </Col>
                             <Col span={12}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>子网掩码</Text>
-                                    <Text code copyable style={{ fontSize: '10px' }}>{result.subnetMask}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>子网掩码</Text>
+                                    <Text code copyable style={{ fontSize: '12px' }}>{result.subnetMask}</Text>
                                 </div>
                             </Col>
                             <Col span={12}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>CIDR</Text>
-                                    <Text code style={{ fontSize: '10px' }}>/{result.cidr}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>CIDR</Text>
+                                    <Text code style={{ fontSize: '12px' }}>/{result.cidr}</Text>
                                 </div>
                             </Col>
                             <Col span={12}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>子网数量</Text>
-                                    <Text style={{ fontSize: '10px' }}>{result.subnetCount}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>子网数量</Text>
+                                    <Text style={{ fontSize: '12px' }}>{result.subnetCount}</Text>
                                 </div>
                             </Col>
                             <Col span={12}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>每个网络节点数</Text>
-                                    <Text style={{ fontSize: '10px' }}>{result.hostsPerSubnet}</Text>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>每个网络节点数</Text>
+                                    <Text style={{ fontSize: '12px' }}>{result.hostsPerSubnet}</Text>
                                 </div>
                             </Col>
                             <Col span={12}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                    <Text strong style={{ fontSize: '11px', color: '#666' }}>网络列表</Text>
-                                    <Button onClick={showNetworkList} size="small" style={{ fontSize: '10px' }}>
+                                    <Text strong style={{ fontSize: '12px', color: '#666' }}>网络列表</Text>
+                                    <Button onClick={showNetworkList} size="small" style={{ fontSize: '12px' }}>
                                         查看列表
                                     </Button>
                                 </div>

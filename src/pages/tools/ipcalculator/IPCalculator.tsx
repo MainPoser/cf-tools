@@ -40,7 +40,7 @@ export default function IPCalculator() {
                 } 
                 size="small" 
                 style={{ marginBottom: '16px' }}
-                headStyle={{ background: '#e6f7ff', borderBottom: '2px solid #1890ff' }}
+                styles={{header: { background: '#e6f7ff', borderBottom: '2px solid #1890ff' }}}
             >
                 <Row gutter={[12, 12]}>
                     <Col xs={24} md={12}>
@@ -61,19 +61,19 @@ export default function IPCalculator() {
                 } 
                 size="small" 
                 style={{ marginBottom: '16px' }}
-                headStyle={{ background: '#f6ffed', borderBottom: '2px solid #52c41a' }}
+                styles={{header: { background: '#f6ffed', borderBottom: '2px solid #52c41a' }}}
             >
                 <Row gutter={[12, 12]}>
-                    <Col xs={24} sm={12} lg={8}>
+                    <Col xs={24} sm={12} md={12} lg={12}>
                         <CIDRToMaskConverter />
                     </Col>
-                    <Col xs={24} sm={12} lg={8}>
+                    <Col xs={24} sm={12} md={12} lg={12}>
                         <HostCountToMaskConverter />
                     </Col>
-                    <Col xs={24} sm={12} lg={8}>
+                    <Col xs={24} sm={12} md={12} lg={12}>
                         <WildcardMaskConverter />
                     </Col>
-                    <Col xs={24} sm={12} lg={8}>
+                    <Col xs={24} sm={12} md={12} lg={12}>
                         <SubnetMaskConverter />
                     </Col>
                 </Row>
@@ -88,7 +88,7 @@ export default function IPCalculator() {
                 } 
                 size="small" 
                 style={{ marginBottom: '16px' }}
-                headStyle={{ background: '#f9f0ff', borderBottom: '2px solid #722ed1' }}
+                styles={{header: { background: '#f9f0ff', borderBottom: '2px solid #722ed1' }}}
             >
                 <Row gutter={[12, 12]}>
                     <Col xs={24} md={12}>
@@ -107,8 +107,9 @@ export default function IPCalculator() {
                         IPv6专用工具
                     </Text>
                 } 
-                size="small"
-                headStyle={{ background: '#fff7e6', borderBottom: '2px solid #fa8c16' }}
+                size="small" 
+                style={{ marginBottom: '16px' }}
+                styles={{header: { background: '#fff7e6', borderBottom: '2px solid #fa8c16' }}}
             >
                 <Row gutter={[12, 12]}>
                     <Col xs={24}>
