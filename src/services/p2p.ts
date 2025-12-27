@@ -203,7 +203,14 @@ export class P2PManager {
                 try {
                     const res = await fetch(`${API_BASE}/api/p2p/answer/${this.code}`);
                     const data = await res.json();
-                    if (data.answer && this.pc) { // Double check this.pc
+                    
+                    if (data.answer && this.pc) { 
+                        // 修复: 如果连接已经建立(stable)或正在处理(have-local-offer)，避免重复设置
+                        // 实际上只要不是 'stable' 我们都可以尝试设置，但如果已经是 stable 就绝对不要设了
+                        if (this.pc.signalingState === 'stable') {
+                            console.log('Connection stable, skipping redundant answer');
+                            return;
+                        }
                         console.log('Got Answer!');
                         await this.pc.setRemoteDescription(data.answer);
                     }
