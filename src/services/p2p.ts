@@ -290,47 +290,61 @@ export class P2PManager {
     private async sendFileLogic() {
         if (!this.dataChannel || !this.fileToSend) return;
         
-        this.onStatus('transferring', 0);
-        const file = this.fileToSend;
-        const chunkSize = 64 * 1024; // 优化: 提升到 64KB
-        
-        // 1. 发送元数据
-        this.dataChannel.send(JSON.stringify({
-            type: 'metadata',
-            data: { name: file.name, size: file.size, type: file.type }
-        }));
-
-        // 2. 发送内容
-        const buffer = await file.arrayBuffer();
-        let offset = 0;
-        this.dataChannel.bufferedAmountLowThreshold = 65535;
-
-        const sendChunk = () => {
-            const channel = this.dataChannel;
-            if (!channel) return;
-
-            while (offset < buffer.byteLength) {
-                if (channel.bufferedAmount > channel.bufferedAmountLowThreshold) {
-                    channel.onbufferedamountlow = () => {
-                        channel.onbufferedamountlow = null;
-                        sendChunk();
-                    };
-                    return;
-                }
-                const chunk = buffer.slice(offset, offset + chunkSize);
-                channel.send(chunk);
-                offset += chunkSize;
-                
-                const pct = Math.round((offset / buffer.byteLength) * 100);
-                this.onStatus('transferring', pct);
-            }
+        try {
+            this.onStatus('transferring', 0);
+            const file = this.fileToSend;
+            const chunkSize = 64 * 1024; // 64KB chunks
             
-            // 优化: 发送完毕不代表对方收到了，等待对方发送 ACK
-            this.onStatus('transferring', 100); 
-            console.log('File sent, waiting for ACK...');
-        };
-        
-        sendChunk();
+            // 1. 发送元数据
+            this.dataChannel.send(JSON.stringify({
+                type: 'metadata',
+                data: { name: file.name, size: file.size, type: file.type }
+            }));
+
+            // 2. 发送内容 (分块读取)
+            let offset = 0;
+            this.dataChannel.bufferedAmountLowThreshold = 65535;
+
+            const readAndSendChunk = async () => {
+                const channel = this.dataChannel;
+                if (!channel || channel.readyState !== 'open') return;
+
+                while (offset < file.size) {
+                    if (channel.bufferedAmount > channel.bufferedAmountLowThreshold) {
+                        // 等待缓冲队列降低
+                        channel.onbufferedamountlow = () => {
+                            channel.onbufferedamountlow = null;
+                            readAndSendChunk();
+                        };
+                        return;
+                    }
+
+                    try {
+                        const slice = file.slice(offset, offset + chunkSize);
+                        const buffer = await slice.arrayBuffer();
+                        channel.send(buffer);
+                        offset += chunkSize;
+                        
+                        const pct = Math.round((offset / file.size) * 100);
+                        // 传输中显示进度，但预留 100% 给 ACK
+                        this.onStatus('transferring', Math.min(pct, 99));
+                    } catch (readErr) {
+                        console.error("Error reading file chunk:", readErr);
+                        this.onStatus('error');
+                        return;
+                    }
+                }
+                
+                // 发送完毕
+                console.log('File sent, waiting for ACK...');
+            };
+            
+            readAndSendChunk();
+
+        } catch (e) {
+            console.error("Error starting file send:", e);
+            this.onStatus('error');
+        }
     }
 
     private handleMessage(event: MessageEvent) {
