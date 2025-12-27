@@ -35,6 +35,8 @@
 - 颜色选择器（`/tools/color-picker`）
 - Markdown 预览（`/tools/markdown`）
 - 密码生成器（`/tools/password-generator`）
+- IP计算器 （`/tools/ip-calculator`）
+- P2P文件直传 （`/tools/file-transfer`）
 
 可选的 AI 工具：
 - AI 工具总览、文本生成、图像生成、文本翻译（基于 Cloudflare AI；通过 Worker 代理）
@@ -88,6 +90,8 @@ wrangler login
 ```bash
 wrangler kv namespace create "ANALYTICS"
 wrangler kv namespace create "ANALYTICS" --preview  # 可选
+wrangler kv namespace create "P2P_KV"
+wrangler kv namespace create "P2P_KV" --preview  # 可选
 ```
 
 执行后，`wrangler.jsonc` 的 `kv_namespaces` 通常会自动写入绑定与 `id/preview_id`。如需手动配置，确保如下结构：
@@ -96,6 +100,11 @@ wrangler kv namespace create "ANALYTICS" --preview  # 可选
 "kv_namespaces": [
   {
     "binding": "ANALYTICS",
+    "id": "你的实际KV_ID",
+    "preview_id": "你的预览KV_ID"
+  },
+  {
+    "binding": "P2P_KV",
     "id": "你的实际KV_ID",
     "preview_id": "你的预览KV_ID"
   }
@@ -154,6 +163,7 @@ KV 用于保存工具访问统计数据（键为工具名称）。绑定名为 `
 ```ts
 export interface CloudFlareEnv {
   ANALYTICS: KVNamespace;
+  P2P_KV: KVNamespace;
 }
 ```
 
@@ -163,7 +173,8 @@ Wrangler 配置（`wrangler.jsonc`）中需存在：
 {
   "main": "worker/index.ts",
   "assets": { "directory": "./dist", "not_found_handling": "single-page-application" },
-  "kv_namespaces": [ { "binding": "ANALYTICS", "id": "...", "preview_id": "..." } ]
+  "kv_namespaces": [ { "binding": "ANALYTICS", "id": "...", "preview_id": "..." },
+    { "binding": "P2P_KV", "id": "...", "preview_id": "..." } ]
 }
 ```
 
