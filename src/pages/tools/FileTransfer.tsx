@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { P2PManager } from '../../services/p2p';
+import { useAutoTrackVisit } from '../../hooks/useAnalytics';
 import { SettingOutlined, DeleteOutlined, PlusOutlined, UndoOutlined } from '@ant-design/icons';
 import './FileTransfer.css';
 
@@ -13,6 +14,9 @@ const DEFAULT_ICE_SERVERS = [
 ];
 
 const FileTransfer: React.FC = () => {
+
+  useAutoTrackVisit('P2P文件直传');
+
   const [role, setRole] = useState<ViewMode>('sender');
   const [status, setStatus] = useState<string>('idle'); 
   const [progress, setProgress] = useState<number>(0);
