@@ -6,8 +6,10 @@ import './FileTransfer.css';
 type ViewMode = 'sender' | 'receiver';
 
 const DEFAULT_ICE_SERVERS = [
-  'stun:stun.l.google.com:19302',
-  'stun:global.stun.twilio.com:3478'
+  'stun:stun.miwifi.com:3478',
+  'stun:stun.qq.com:3478',
+  'stun:stun.chat.bilibili.com:3478',
+  'stun:stun.l.google.com:19302'
 ];
 
 const FileTransfer: React.FC = () => {
