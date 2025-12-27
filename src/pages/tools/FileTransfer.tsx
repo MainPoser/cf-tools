@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './FileTransfer.css';
 
 type TransferState = 'idle' | 'initializing' | 'waiting-peer' | 'connected' | 'transferring' | 'completed' | 'error';
@@ -25,14 +25,27 @@ const FileTransfer: React.FC = () => {
   const fileChunksRef = useRef<ArrayBuffer[]>([]);
   const receivedSizeRef = useRef<number>(0);
   const metadataRef = useRef<FileMetadata | null>(null);
-  
+
   // 关键修复: 使用 ref 来存储 code，确保在异步回调中能获取到最新值
   const codeRef = useRef<string>('');
+
+  // 关键修复: 存储定时器 ID 以便在组件卸载时清除
+  const answerPollRef = useRef<number | null>(null);
+  const candidatesPollRef = useRef<number | null>(null);
+
+  // 组件卸载时清理所有定时器和连接
+  useEffect(() => {
+    return () => {
+      if (answerPollRef.current) clearInterval(answerPollRef.current);
+      if (candidatesPollRef.current) clearInterval(candidatesPollRef.current);
+      if (pcRef.current) pcRef.current.close();
+    };
+  }, []);
 
   // 初始化 PeerConnection
   const initPC = () => {
     if (pcRef.current) pcRef.current.close();
-    
+
     const pc = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
@@ -78,7 +91,7 @@ const FileTransfer: React.FC = () => {
     setStatusMsg('正在创建连接...');
 
     // 重置状态
-    codeRef.current = ''; 
+    codeRef.current = '';
     setTransferCode('');
 
     const pc = initPC();
@@ -98,7 +111,7 @@ const FileTransfer: React.FC = () => {
         body: JSON.stringify({ offer })
       });
       const data = await res.json();
-      
+
       // 更新 code
       setTransferCode(data.code);
       codeRef.current = data.code; // 关键: 立即更新 ref
@@ -133,7 +146,7 @@ const FileTransfer: React.FC = () => {
     setStatusMsg('正在发送元数据...');
 
     const channel = dataChannelRef.current;
-    
+
     // 1. 发送元数据
     const metadata: FileMetadata = {
       name: file.name,
@@ -148,7 +161,7 @@ const FileTransfer: React.FC = () => {
     let offset = 0;
 
     setStatusMsg('正在发送文件内容...');
-    
+
     // 使用 bufferedAmountLowThreshold 来控制背压
     channel.bufferedAmountLowThreshold = 65535;
 
@@ -181,9 +194,12 @@ const FileTransfer: React.FC = () => {
   };
 
   const pollForAnswer = (code: string) => {
-    const interval = setInterval(async () => {
+    // 清除旧的轮询（如果有）
+    if (answerPollRef.current) clearInterval(answerPollRef.current);
+
+    answerPollRef.current = window.setInterval(async () => {
       if (pcRef.current?.remoteDescription) {
-        clearInterval(interval);
+        if (answerPollRef.current) clearInterval(answerPollRef.current);
         return;
       }
       try {
@@ -191,7 +207,7 @@ const FileTransfer: React.FC = () => {
         const data = await res.json();
         if (data.answer) {
           await pcRef.current?.setRemoteDescription(data.answer);
-          clearInterval(interval);
+          if (answerPollRef.current) clearInterval(answerPollRef.current);
         }
       } catch (e) {
         console.error('Polling error', e);
@@ -205,14 +221,14 @@ const FileTransfer: React.FC = () => {
     if (!inputCode) return;
     setStatus('initializing');
     setStatusMsg('正在获取连接信息...');
-    
+
     setTransferCode(inputCode);
     codeRef.current = inputCode; // 更新 ref
 
     try {
       const res = await fetch(`${API_BASE}/api/p2p/session/${inputCode}`);
       const data = await res.json();
-      
+
       if (data.error) {
         setStatus('error');
         setStatusMsg('取件码无效或已过期');
@@ -220,7 +236,7 @@ const FileTransfer: React.FC = () => {
       }
 
       const pc = initPC();
-      
+
       // 接收端监听 DataChannel
       pc.ondatachannel = (event) => {
         setupDataChannel(event.channel);
@@ -238,7 +254,7 @@ const FileTransfer: React.FC = () => {
 
       setStatus('waiting-peer');
       setStatusMsg('正在建立 P2P 连接...');
-      
+
       // 开始轮询对方的 ICE candidates
       pollForCandidates(inputCode, 'offer');
 
@@ -267,7 +283,7 @@ const FileTransfer: React.FC = () => {
       // Binary data (ArrayBuffer)
       fileChunksRef.current.push(data);
       receivedSizeRef.current += data.byteLength;
-      
+
       if (metadataRef.current) {
         const pct = Math.round((receivedSizeRef.current / metadataRef.current.size) * 100);
         setProgress(pct);
@@ -295,10 +311,13 @@ const FileTransfer: React.FC = () => {
   // --- 通用 ---
 
   const pollForCandidates = (code: string, targetType: 'offer' | 'answer') => {
+    // 清除旧的轮询
+    if (candidatesPollRef.current) clearInterval(candidatesPollRef.current);
+
     let lastIndex = 0;
-    const interval = setInterval(async () => {
+    candidatesPollRef.current = window.setInterval(async () => {
       if (pcRef.current?.connectionState === 'connected' || pcRef.current?.connectionState === 'closed') {
-        clearInterval(interval);
+        if (candidatesPollRef.current) clearInterval(candidatesPollRef.current);
         return;
       }
       try {
@@ -321,18 +340,18 @@ const FileTransfer: React.FC = () => {
       <h2>P2P 文件直传</h2>
       <p className="description">
         使用 WebRTC 技术，文件直接在设备间传输，不消耗服务器流量。
-        <br/>数据只在你们两端传输，安全且快速。
+        <br />数据只在你们两端传输，安全且快速。
       </p>
 
       <div className="ft-tabs">
-        <button 
-          className={role === 'sender' ? 'active' : ''} 
+        <button
+          className={role === 'sender' ? 'active' : ''}
           onClick={() => { setRole('sender'); setStatus('idle'); setProgress(0); }}
         >
           我要发送
         </button>
-        <button 
-          className={role === 'receiver' ? 'active' : ''} 
+        <button
+          className={role === 'receiver' ? 'active' : ''}
           onClick={() => { setRole('receiver'); setStatus('idle'); setProgress(0); }}
         >
           我要接收
@@ -345,7 +364,7 @@ const FileTransfer: React.FC = () => {
             <div className="file-input-wrapper">
               <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} disabled={status !== 'idle'} />
             </div>
-            
+
             {file && status === 'idle' && (
               <button className="primary-btn" onClick={startSender}>生成取件码</button>
             )}
@@ -360,9 +379,9 @@ const FileTransfer: React.FC = () => {
           </div>
         ) : (
           <div className="receiver-panel">
-            <input 
-              type="text" 
-              placeholder="请输入6位取件码" 
+            <input
+              type="text"
+              placeholder="请输入6位取件码"
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value)}
               disabled={status !== 'idle'}
