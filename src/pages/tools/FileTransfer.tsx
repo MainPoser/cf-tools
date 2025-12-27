@@ -26,50 +26,69 @@ const FileTransfer: React.FC = () => {
   const receivedSizeRef = useRef<number>(0);
   const metadataRef = useRef<FileMetadata | null>(null);
 
-  // 关键修复: 使用 ref 来存储 code，确保在异步回调中能获取到最新值
-  const codeRef = useRef<string>('');
-
-  // 关键修复: 存储定时器 ID 以便在组件卸载时清除
-  const answerPollRef = useRef<number | null>(null);
-  const candidatesPollRef = useRef<number | null>(null);
-
-  // 组件卸载时清理所有定时器和连接
-  useEffect(() => {
-    return () => {
-      if (answerPollRef.current) clearInterval(answerPollRef.current);
-      if (candidatesPollRef.current) clearInterval(candidatesPollRef.current);
-      if (pcRef.current) pcRef.current.close();
+    // 关键修复: 使用 ref 来存储 code，确保在异步回调中能获取到最新值
+    const codeRef = useRef<string>('');
+    // 关键修复: 缓存 ICE Candidates，防止在拿到 code 之前丢失候选者
+    const candidateBufferRef = useRef<RTCIceCandidate[]>([]);
+    
+    // 关键修复: 存储定时器 ID 以便在组件卸载时清除
+    const answerPollRef = useRef<number | null>(null);
+    const candidatesPollRef = useRef<number | null>(null);
+  
+    // 组件卸载时清理所有定时器和连接
+    useEffect(() => {
+      return () => {
+        if (answerPollRef.current) clearInterval(answerPollRef.current);
+        if (candidatesPollRef.current) clearInterval(candidatesPollRef.current);
+        if (pcRef.current) pcRef.current.close();
+      };
+    }, []);
+    
+    const sendIceCandidate = (code: string, candidate: RTCIceCandidate) => {
+      fetch(`${API_BASE}/api/p2p/ice/${code}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          candidate: candidate,
+          type: role === 'sender' ? 'offer' : 'answer'
+        })
+      }).catch(console.error);
     };
-  }, []);
-
-  // 初始化 PeerConnection
-  const initPC = () => {
-    if (pcRef.current) pcRef.current.close();
-
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:global.stun.twilio.com:3478' }
-      ]
-    });
-
-    pc.onicecandidate = (event) => {
-      // 使用 codeRef.current 获取最新的 code
-      const currentCode = codeRef.current;
-      if (event.candidate && currentCode) {
-        // 发送 candidate 到服务器
-        fetch(`${API_BASE}/api/p2p/ice/${currentCode}`, {
-          method: 'POST',
-          body: JSON.stringify({
-            candidate: event.candidate,
-            type: role === 'sender' ? 'offer' : 'answer'
-          })
-        }).catch(console.error);
+  
+    const flushCandidates = (code: string) => {
+      if (candidateBufferRef.current.length > 0) {
+        console.log(`Flushing ${candidateBufferRef.current.length} buffered candidates`);
+        candidateBufferRef.current.forEach(cand => sendIceCandidate(code, cand));
+        candidateBufferRef.current = [];
       }
     };
-
-    pc.onconnectionstatechange = () => {
-      console.log('Connection state:', pc.connectionState);
+  
+    // 初始化 PeerConnection
+    const initPC = () => {
+      if (pcRef.current) pcRef.current.close();
+      candidateBufferRef.current = []; // 重置 buffer
+      
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:global.stun.twilio.com:3478' }
+        ]
+      });
+  
+      pc.onicecandidate = (event) => {
+        if (!event.candidate) return;
+  
+        const currentCode = codeRef.current;
+        if (currentCode) {
+          // 有 code，直接发
+          sendIceCandidate(currentCode, event.candidate);
+        } else {
+          // 没 code，存起来
+          console.log('Buffering candidate...');
+          candidateBufferRef.current.push(event.candidate);
+        }
+      };
+  
+      pc.onconnectionstatechange = () => {      console.log('Connection state:', pc.connectionState);
       if (pc.connectionState === 'connected') {
         setStatus('connected');
         setStatusMsg('已连接到对方，准备传输...');
@@ -115,6 +134,9 @@ const FileTransfer: React.FC = () => {
       // 更新 code
       setTransferCode(data.code);
       codeRef.current = data.code; // 关键: 立即更新 ref
+      
+      // 立即发送缓存的 Candidates
+      flushCandidates(data.code);
 
       setStatus('waiting-peer');
       setStatusMsg(`等待对方连接... 取件码: ${data.code}`);
@@ -224,6 +246,9 @@ const FileTransfer: React.FC = () => {
 
     setTransferCode(inputCode);
     codeRef.current = inputCode; // 更新 ref
+    
+    // 即使这里 code 已经有了，flush 也可以处理可能的边缘情况，或者简单的作为初始化
+    flushCandidates(inputCode);
 
     try {
       const res = await fetch(`${API_BASE}/api/p2p/session/${inputCode}`);
