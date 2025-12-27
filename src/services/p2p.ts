@@ -154,8 +154,9 @@ export class P2PManager {
             console.log(`[${this.role}] Connection State: ${this.pc?.connectionState}`);
             if (this.pc?.connectionState === 'connected') {
                 this.onStatus('connected');
-                // 停止 ICE 轮询，节省资源
-                // this.stopPolling(); // 可选：如果网络环境复杂，建议继续轮询一会
+                // 连接成功，立即停止轮询并销毁服务器上的信令
+                this.stopPolling();
+                this.destroySignaling();
             } else if (this.pc?.connectionState === 'failed') {
                 this.onStatus('error');
             }
@@ -166,6 +167,19 @@ export class P2PManager {
             this.pc.ondatachannel = (e) => {
                 this.setupDataChannel(e.channel);
             };
+        }
+    }
+
+    private stopPolling() {
+        this.pollTimers.forEach(t => clearInterval(t));
+        this.pollTimers = [];
+    }
+
+    private destroySignaling() {
+        if (this.code) {
+            fetch(`${API_BASE}/api/p2p/session/${this.code}`, {
+                method: 'DELETE'
+            }).catch(e => console.error('Destroy signaling error:', e));
         }
     }
 
@@ -278,7 +292,7 @@ export class P2PManager {
         
         this.onStatus('transferring', 0);
         const file = this.fileToSend;
-        const chunkSize = 16 * 1024;
+        const chunkSize = 64 * 1024; // 优化: 提升到 64KB
         
         // 1. 发送元数据
         this.dataChannel.send(JSON.stringify({
@@ -311,7 +325,9 @@ export class P2PManager {
                 this.onStatus('transferring', pct);
             }
             
-            this.onStatus('completed', 100);
+            // 优化: 发送完毕不代表对方收到了，等待对方发送 ACK
+            this.onStatus('transferring', 100); 
+            console.log('File sent, waiting for ACK...');
         };
         
         sendChunk();
@@ -322,6 +338,13 @@ export class P2PManager {
         
         if (typeof data === 'string') {
             try {
+                // 处理 ACK 信号
+                if (data === 'ACK') {
+                    console.log('Received ACK from receiver');
+                    this.onStatus('completed', 100);
+                    return;
+                }
+
                 const msg = JSON.parse(data);
                 if (msg.type === 'metadata') {
                     this.incomingMetadata = msg.data;
@@ -343,6 +366,13 @@ export class P2PManager {
                 if (this.receivedSize >= this.incomingMetadata.size) {
                     const blob = new Blob(this.receivedChunks, { type: this.incomingMetadata.type });
                     this.onFileReceived(blob, this.incomingMetadata.name);
+                    
+                    // 优化: 接收完成，发送 ACK 给发送端
+                    if (this.dataChannel && this.dataChannel.readyState === 'open') {
+                        this.dataChannel.send('ACK');
+                        console.log('File received, sent ACK');
+                    }
+                    
                     this.onStatus('completed', 100);
                 }
             }

@@ -145,4 +145,26 @@ app.get('/api/p2p/ice/:code', async (c) => {
   });
 });
 
+/**
+ * 7. 销毁会话数据
+ * DELETE /api/p2p/session/:code
+ */
+app.delete('/api/p2p/session/:code', async (c) => {
+  const code = c.req.param('code');
+  
+  // 删除所有相关的 KV
+  const keys = [
+    `${PREFIX}offer_${code}`,
+    `${PREFIX}answer_${code}`,
+    `${PREFIX}ice_offer_${code}`,
+    `${PREFIX}ice_answer_${code}`
+  ];
+
+  for (const key of keys) {
+    await c.env.P2P_KV.delete(key);
+  }
+
+  return c.json({ success: true });
+});
+
 export default app;
