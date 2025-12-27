@@ -7,6 +7,123 @@
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
+.ft-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ft-header h2 {
+  margin: 0;
+}
+
+.settings-toggle {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #999;
+  transition: all 0.3s;
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.settings-toggle:hover, .settings-toggle.active {
+  background: #f0f0f0;
+  color: #2563eb;
+  transform: rotate(45deg);
+}
+
+.settings-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.settings-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.text-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.text-btn:hover { color: #2563eb; }
+
+.server-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.server-item {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.server-url {
+  flex: 1;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+
+.icon-btn.delete:hover { color: #ef4444; }
+.icon-btn.add { 
+  background: #2563eb; 
+  color: white; 
+  border-radius: 4px;
+}
+.icon-btn.add:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+.add-server-row {
+  display: flex;
+  gap: 8px;
+}
+
+.add-server-row input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
 .description {
   color: #666;
   font-size: 0.9rem;

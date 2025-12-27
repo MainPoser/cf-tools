@@ -29,10 +29,18 @@ export class P2PManager {
     private receivedSize = 0;
     private incomingMetadata: FileMetadata | null = null;
 
-    constructor(role: P2PRole, onStatus: StatusCallback, onFileReceived: FileReceivedCallback) {
+    private iceServers: RTCIceServer[];
+
+    constructor(
+        role: P2PRole, 
+        onStatus: StatusCallback, 
+        onFileReceived: FileReceivedCallback,
+        iceServers: RTCIceServer[]
+    ) {
         this.role = role;
         this.onStatus = onStatus;
         this.onFileReceived = onFileReceived;
+        this.iceServers = iceServers;
     }
 
     // --- 公共 API ---
@@ -127,10 +135,7 @@ export class P2PManager {
 
     private initPC() {
         this.pc = new RTCPeerConnection({
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:global.stun.twilio.com:3478' }
-            ]
+            iceServers: this.iceServers
         });
 
         // 处理 ICE Candidate

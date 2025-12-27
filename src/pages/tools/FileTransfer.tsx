@@ -1,21 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { P2PManager } from '../../services/p2p';
+import { SettingOutlined, DeleteOutlined, PlusOutlined, UndoOutlined } from '@ant-design/icons';
 import './FileTransfer.css';
 
 type ViewMode = 'sender' | 'receiver';
 
+const DEFAULT_ICE_SERVERS = [
+  'stun:stun.l.google.com:19302',
+  'stun:global.stun.twilio.com:3478'
+];
+
 const FileTransfer: React.FC = () => {
   const [role, setRole] = useState<ViewMode>('sender');
-  const [status, setStatus] = useState<string>('idle'); // idle, initializing, waiting-peer, connected, transferring, completed, error
+  const [status, setStatus] = useState<string>('idle'); 
   const [progress, setProgress] = useState<number>(0);
   const [code, setCode] = useState<string>('');
   const [inputCode, setInputCode] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   
-  // 使用 ref 持有 Manager 实例
+  // Settings
+  const [showSettings, setShowSettings] = useState(false);
+  const [stunServers, setStunServers] = useState<string[]>(() => {
+    const saved = localStorage.getItem('p2p_stun_servers');
+    return saved ? JSON.parse(saved) : DEFAULT_ICE_SERVERS;
+  });
+  const [newStun, setNewStun] = useState('');
+
   const managerRef = useRef<P2PManager | null>(null);
 
-  // 状态显示文本映射
   const statusText: Record<string, string> = {
     'initializing': '正在初始化...',
     'waiting-peer': '等待对方连接...',
@@ -25,12 +37,14 @@ const FileTransfer: React.FC = () => {
     'error': '连接发生错误',
   };
 
-  // 切换角色时清理旧实例
   useEffect(() => {
-    return () => {
-      stopSession();
-    };
+    return () => stopSession();
   }, [role]);
+
+  // Save settings when changed
+  useEffect(() => {
+    localStorage.setItem('p2p_stun_servers', JSON.stringify(stunServers));
+  }, [stunServers]);
 
   const stopSession = () => {
     if (managerRef.current) {
@@ -45,6 +59,9 @@ const FileTransfer: React.FC = () => {
   const initManager = () => {
     stopSession();
     
+    // Convert string[] to RTCIceServer[]
+    const iceConfig = stunServers.map(url => ({ urls: url }));
+
     managerRef.current = new P2PManager(
       role,
       (newStatus, newProgress) => {
@@ -52,14 +69,14 @@ const FileTransfer: React.FC = () => {
         if (newProgress !== undefined) setProgress(newProgress);
       },
       (blob, name) => {
-        // 自动下载文件
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = name;
         a.click();
         URL.revokeObjectURL(url);
-      }
+      },
+      iceConfig // Pass custom config
     );
   };
 
@@ -86,9 +103,70 @@ const FileTransfer: React.FC = () => {
     }
   };
 
+  // Settings Handlers
+  const addServer = () => {
+    if (newStun && !stunServers.includes(newStun)) {
+      setStunServers([...stunServers, newStun]);
+      setNewStun('');
+    }
+  };
+
+  const removeServer = (index: number) => {
+    const newList = [...stunServers];
+    newList.splice(index, 1);
+    setStunServers(newList);
+  };
+
+  const resetServers = () => {
+    setStunServers(DEFAULT_ICE_SERVERS);
+  };
+
   return (
     <div className="file-transfer-container">
-      <h2>P2P 文件直传</h2>
+      <div className="ft-header">
+        <h2>P2P 文件直传</h2>
+        <button 
+          className={`settings-toggle ${showSettings ? 'active' : ''}`}
+          onClick={() => setShowSettings(!showSettings)}
+          title="连接设置"
+        >
+          <SettingOutlined />
+        </button>
+      </div>
+      
+      {showSettings && (
+        <div className="settings-panel">
+          <div className="settings-title">
+            <span>STUN 服务器列表</span>
+            <button className="text-btn" onClick={resetServers} title="恢复默认">
+              <UndoOutlined /> 恢复
+            </button>
+          </div>
+          <div className="server-list">
+            {stunServers.map((url, idx) => (
+              <div key={idx} className="server-item">
+                <span className="server-url" title={url}>{url}</span>
+                <button className="icon-btn delete" onClick={() => removeServer(idx)}>
+                  <DeleteOutlined />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="add-server-row">
+            <input 
+              type="text" 
+              placeholder="stun:example.com:3478" 
+              value={newStun}
+              onChange={(e) => setNewStun(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addServer()}
+            />
+            <button className="icon-btn add" onClick={addServer} disabled={!newStun}>
+              <PlusOutlined />
+            </button>
+          </div>
+        </div>
+      )}
+
       <p className="description">
         使用 WebRTC 技术，文件直接在设备间传输，不消耗服务器流量。
         <br/>数据只在你们两端传输，安全且快速。
