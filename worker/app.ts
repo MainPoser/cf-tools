@@ -4,6 +4,7 @@ import { type CloudFlareEnv } from './types';
 import indexRoutes from './routes/index';
 import analyticsRoutes from './routes/analytics';
 import proxyRoutes from './routes/proxy';
+import p2pRoutes from './routes/p2p';
 
 const app = new Hono<{ Bindings: CloudFlareEnv }>();
 
@@ -14,6 +15,7 @@ app.use('*', corsMiddleware);
 app.route('/', indexRoutes);
 app.route('/', analyticsRoutes);
 app.route('/', proxyRoutes);
+app.route('/', p2pRoutes);
 
 // 404 处理
 app.notFound((c) => {

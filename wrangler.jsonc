@@ -24,6 +24,11 @@
 			"binding": "ANALYTICS",
 			"id": "867c654ae1864ffc8e2ad5be758195d5",
 			"preview_id": "867c654ae1864ffc8e2ad5be758195d5"
+		},
+		{
+			"binding": "P2P_KV",
+			"id": "81c4f28d6f894b06a4c6e7c5dbc421fd",
+			"preview_id": "e534b681aee54753888ad5c541c5a582"
 		}
 	],
 	// "durable_objects": {

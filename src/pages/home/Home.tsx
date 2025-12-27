@@ -15,7 +15,8 @@ import {
     TranslationOutlined,
     ApiOutlined,
     ThunderboltOutlined,
-    CalculatorOutlined
+    CalculatorOutlined,
+    SwapOutlined
 } from '@ant-design/icons';
 import { theme } from 'antd';
 import { useSiteStats } from '../../hooks/useAnalytics';
@@ -91,6 +92,13 @@ function Home() {
             description: '网络IP地址和子网掩码计算工具',
             icon: <CalculatorOutlined style={{ fontSize: '24px', color: '#1890ff' }} />,
             path: '/tools/ip-calculator',
+            available: true
+        },
+        {
+            title: 'P2P文件直传',
+            description: '无流量、高速、点对点文件传输',
+            icon: <SwapOutlined style={{ fontSize: '24px', color: '#13c2c2' }} />,
+            path: '/tools/file-transfer',
             available: true
         }
     ];

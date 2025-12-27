@@ -1,0 +1,148 @@
+.file-transfer-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background: var(--bg-secondary, #fff);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.description {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.ft-tabs {
+  display: flex;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #eee;
+}
+
+.ft-tabs button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #888;
+  transition: all 0.2s;
+}
+
+.ft-tabs button.active {
+  color: #2563eb;
+  border-bottom: 2px solid #2563eb;
+  margin-bottom: -2px;
+}
+
+.ft-content {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sender-panel, .receiver-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.file-input-wrapper input {
+  padding: 10px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.receiver-panel input[type="text"] {
+  padding: 12px;
+  font-size: 1.2rem;
+  text-align: center;
+  letter-spacing: 2px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  width: 200px;
+}
+
+.primary-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primary-btn:hover {
+  background: #1d4ed8;
+}
+
+.code-display {
+  background: #f3f4f6;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.code-display .code {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #2563eb;
+  letter-spacing: 4px;
+  margin: 10px 0;
+  user-select: all;
+}
+
+.status-box {
+  margin-top: 24px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.status-box.error {
+  background: #fef2f2;
+  border-color: #fee2e2;
+  color: #dc2626;
+}
+
+.status-box.completed {
+  background: #f0fdf4;
+  border-color: #dcfce7;
+  color: #16a34a;
+}
+
+.progress-bar-bg {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #2563eb;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  float: right;
+  margin-top: 4px;
+  color: #64748b;
+}

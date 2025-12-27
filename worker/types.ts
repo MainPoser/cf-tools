@@ -10,6 +10,7 @@ export interface ToolAnalytics {
 
 export interface CloudFlareEnv {
   ANALYTICS: KVNamespace;
+  P2P_KV: KVNamespace;
 }
 
 export interface Variables {
