@@ -1,3 +1,4 @@
+
 # CF Tools
 
 一个基于 Cloudflare Workers 的全栈 React 工具站，涵盖常用开发与日常实用工具，并内置访问统计与可选的 AI 能力。
@@ -7,6 +8,10 @@
 - 部署：Cloudflare Workers（使用 Wrangler）
 - 存储：Cloudflare KV（用于访问统计）
 - 演示地址：[https://cf-tools.tianyao.qzz.io/](https://cf-tools.tianyao.qzz.io/)
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MainPoser/cf-tools&type=date&legend=top-left)](https://www.star-history.com/#MainPoser/cf-tools&type=date&legend=top-left)
 
 ## 目录
 
